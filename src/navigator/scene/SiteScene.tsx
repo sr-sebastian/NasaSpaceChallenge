@@ -99,7 +99,6 @@ function CameraRig({ preset, sunAz, earthAz, nonce }: { preset: CameraPreset; su
     if (preset === 'aerial') { const d = dirFromAzEl(sunAz + 120, 0); camera.position.set(d.x * 11000, 7000, d.z * 11000); controls.target.set(0, -1200, 0); }
     else { const az = preset === 'sun' ? sunAz : earthAz; const d = dirFromAzEl(az, 0), side = dirFromAzEl(az + 90, 0); camera.position.set(-d.x * 20 + side.x * 8, 4.2, -d.z * 20 + side.z * 8); controls.target.set(d.x * 10, 4.5, d.z * 10); }
     controls.update();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [preset, nonce, controls]);
   return null;
 }
@@ -129,7 +128,6 @@ function ViewControls({ api, onHint, onReset }: { api: React.MutableRefObject<Vi
     const touch = (e: TouchEvent) => { if (e.touches.length === 1 && !warned) { warned = true; onHint('touch'); setTimeout(() => (warned = false), 4000); } };
     el.addEventListener('wheel', wheel, { passive: false }); el.addEventListener('touchstart', touch, { passive: true });
     return () => { el.removeEventListener('wheel', wheel); el.removeEventListener('touchstart', touch); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [controls, camera, gl]);
   return null;
 }
