@@ -251,3 +251,67 @@ input[type=checkbox]{accent-color:var(--fg);width:16px;height:16px}
 .ev-hibernate::before,.ev-wake::before{background:#ffb340!important}.ev-off::before{background:var(--bad)!important}.ev-reboot::before{background:var(--good)!important}.ev-sunrise::before{background:var(--sun)!important}
 .ev-off .log-x{color:var(--bad)}.ev-hibernate .log-x{color:#ffd28a}
 @media (max-width:760px){.hud-tr{left:10px;right:10px;top:auto;bottom:58px;justify-content:space-between}.hud-tr button{padding:0 8px;font-size:12px;gap:5px}.log button{grid-template-columns:1fr auto}.log-t{grid-column:1/-1}}
+
+/* ---------- visual refresh: lunar research console ---------- */
+:root{
+  --bg:#07090d;--surface:#10141a;--surface-2:#171c24;--surface-3:#202733;
+  --line:rgba(202,215,232,.09);--line-2:rgba(202,215,232,.18);
+  --fg:#f1f3f7;--fg-2:#c7ced8;--muted:#929cab;--faint:#66717f;
+  --regolith:#c3b59e;--focus:#b7a7ff;
+  --r-sm:8px;--r:12px;--r-lg:18px;
+}
+html{background:#07090d;scroll-behavior:smooth}
+body{
+  min-height:100dvh;
+  background:
+    radial-gradient(900px 540px at 12% -8%,rgba(147,128,230,.12),transparent 62%),
+    radial-gradient(720px 520px at 96% 12%,rgba(73,106,148,.08),transparent 68%),
+    linear-gradient(180deg,#090b10 0%,#07090d 44%,#090c11 100%);
+  background-attachment:fixed;
+}
+body::before{
+  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.18;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.12'/%3E%3C/svg%3E");
+}
+.app{max-width:1540px;padding-block:22px 56px;padding-left:max(28px,env(safe-area-inset-left,0px));padding-right:max(28px,env(safe-area-inset-right,0px))}
+.top{min-height:64px;padding:0 2px 18px;border-color:rgba(202,215,232,.1)}
+.brand{gap:14px}.brand-mark{width:42px;height:42px;filter:drop-shadow(0 10px 20px rgba(0,0,0,.35))}
+.brand b{font-size:18px;font-weight:720;letter-spacing:-.025em}.brand small{display:block;margin-top:2px;color:#7f8997;letter-spacing:.005em}
+h2{font-size:12px;font-weight:650;letter-spacing:.12em;color:#aeb7c4}
+h3{font-size:16px;letter-spacing:-.015em}
+.answer{padding:42px 0 16px;position:relative}
+.answer::before{content:"";position:absolute;left:-28px;right:-28px;top:0;bottom:0;z-index:-1;background:linear-gradient(90deg,rgba(153,132,245,.035),transparent 55%);border-bottom:1px solid rgba(202,215,232,.055)}
+.q{margin-bottom:24px;max-width:38ch;font-size:clamp(27px,3.2vw,44px);font-weight:680;font-stretch:108%;letter-spacing:-.045em;line-height:1.06}
+.scen{gap:10px}.scen-opts{gap:20px}.scen-opts label{font-size:12.5px;letter-spacing:.01em}
+.chip{background:rgba(17,21,28,.82);border:1px solid rgba(202,215,232,.1);box-shadow:0 14px 34px rgba(0,0,0,.18);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.chip.on{background:color-mix(in srgb,var(--c) 7%,rgba(17,21,28,.92));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 72%,transparent),0 12px 36px color-mix(in srgb,var(--c) 8%,transparent)}
+.chip.add{border-style:dashed;border-color:rgba(202,215,232,.14);box-shadow:none}
+.verdict-one{margin-top:28px;font-size:14px}
+.main{grid-template-columns:minmax(0,1fr) 390px;gap:28px;margin-top:34px}
+.viewport{border-color:rgba(211,220,234,.13);box-shadow:0 28px 90px rgba(0,0,0,.58),0 0 0 1px rgba(255,255,255,.025) inset}
+.viewport::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 80px rgba(0,0,0,.36);border-radius:inherit}
+.hud-tl{left:20px;top:18px}.hud-tl small{letter-spacing:.14em}.hud-tl b{font-size:clamp(20px,2.1vw,28px);letter-spacing:-.03em}
+.hud-tr,.vc button,.mk-card,.pw{background:rgba(9,12,17,.72);border-color:rgba(232,238,247,.13);box-shadow:inset 0 1px 0 rgba(255,255,255,.045),0 12px 34px rgba(0,0,0,.36)}
+.transport{margin-top:18px}.play{box-shadow:0 8px 28px rgba(202,215,232,.14)}
+.windows{margin-top:24px;padding:18px 20px;border-radius:var(--r-lg);background:rgba(14,18,24,.56);border:1px solid var(--line);box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
+.side{gap:20px}.side>section,.panel{padding:22px;background:linear-gradient(145deg,rgba(20,25,33,.92),rgba(13,17,23,.9));border-color:rgba(202,215,232,.105);box-shadow:inset 0 1px 0 rgba(255,255,255,.025),0 24px 58px rgba(0,0,0,.2)}
+.sec-h{margin-bottom:15px}.hint{line-height:1.6}.hint.lead{margin-bottom:20px}
+.cmp th,.cmp td,.rank th,.rank td{padding:10px 8px;border-bottom-color:rgba(202,215,232,.075)}
+.cmp thead th,.rank thead th{letter-spacing:.1em;color:#7f8a99}
+.cmp td b,.kv dd{font-variant-numeric:tabular-nums}
+.pm{border:1px solid rgba(202,215,232,.08);filter:saturate(.78) contrast(1.06)}
+.duo{gap:20px;margin-top:28px}.cal{margin-top:20px}
+.sky-ground{fill:#171612}.sky-grid,.bat-grid{stroke:rgba(202,215,232,.075)}
+.kv{gap:0;margin-top:18px;display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.kv div{padding:13px 14px;border-right:1px solid var(--line)}.kv div:last-child{border-right:0}.kv dd{margin-top:4px;font-size:18px}
+.rank tbody tr{transition:background .18s ease}.rank tbody tr:hover td{background:rgba(255,255,255,.035)}.rank tr.on td{background:rgba(154,132,245,.09)}
+.foot{margin-top:56px;padding:20px 2px 0;color:#717b88}
+.modal-card,.tour{background:rgba(17,22,29,.94);box-shadow:0 30px 100px rgba(0,0,0,.62),inset 0 1px 0 rgba(255,255,255,.04)}
+@media (max-width:1100px){.main{grid-template-columns:minmax(0,1fr)}.side{grid-template-columns:1fr 1fr}}
+@media (max-width:760px){
+  .app{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-top:14px}
+  .top{align-items:flex-start}.brand b{font-size:16px}.brand small{max-width:220px}.answer{padding-top:30px}.answer::before{left:-16px;right:-16px}
+  .q{font-size:clamp(26px,8vw,36px);line-height:1.08}.main{margin-top:24px}.side,.duo{grid-template-columns:1fr}.side>section,.panel{padding:18px}
+  .windows{padding:16px 14px}.kv{grid-template-columns:1fr 1fr}.kv div:nth-child(2){border-right:0}.kv div:nth-child(-n+2){border-bottom:1px solid var(--line)}
+}
+@media (prefers-reduced-transparency:reduce){.chip,.hud-tr,.vc button,.mk-card,.pw{backdrop-filter:none;-webkit-backdrop-filter:none;background:#11161d}}
