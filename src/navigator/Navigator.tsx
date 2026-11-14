@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { REGIONS, COLORS } from './regions';
-import { loadEphem, metrics, bestStart, dailyFraction, dateToHour, hourToDate, hourToStamp, HOURS, type Ephem, type Priority } from './data';
+import { loadEphem, metrics, bestStart, dailyFraction, dateToHour, hourToDate, hourToStamp, HOURS, type Ephem, type Priority, type Terrain } from './data';
 import { t, type Lang } from './i18n';
 import { PolarMap, Timeline, Panorama, Heatmap } from './Charts';
 import './nv.css';
@@ -13,8 +13,8 @@ function readHash() {
   try {
     const p = new URLSearchParams(location.hash.slice(1));
     const sc = p.get('s')?.split(';').map(x => { const [site, date] = x.split('@'); return { site, date }; }).filter(x => REGIONS.some(r => r.id === x.site) && /^2028-\d\d-\d\d$/.test(x.date));
-    return { sc: sc?.length ? sc : null, dur: Number(p.get('d')) || null, hz: p.has('h') ? Number(p.get('h')) : null, lang: (p.get('l') as Lang) || null };
-  } catch { return { sc: null, dur: null, hz: null, lang: null }; }
+    return { sc: sc?.length ? sc : null, dur: Number(p.get('d')) || null, hz: (p.get('t') === 'flat' ? 'flat' : 'lola') as Terrain, lang: (p.get('l') as Lang) || null };
+  } catch { return { sc: null, dur: null, hz: 'lola' as Terrain, lang: null }; }
 }
 
 function Delta({ v, unit, invert }: { v: number; unit: string; invert?: boolean }) {
@@ -30,7 +30,7 @@ export function Navigator({ onTeach }: { onTeach: () => void }) {
   const [scen, setScen] = useState<Scenario[]>(init.sc ?? DEFAULT);
   const [active, setActive] = useState(0);
   const [days, setDays] = useState(init.dur ?? 14);
-  const [horizon, setHorizon] = useState(init.hz ?? 0);
+  const [terrain, setTerrain] = useState<Terrain>(init.hz);
   const [cursor, setCursor] = useState(0);
   const [prio, setPrio] = useState<Priority>('both');
   const [tab, setTab] = useState<'sky' | 'cal' | 'rank'>('sky');
@@ -40,20 +40,20 @@ export function Navigator({ onTeach }: { onTeach: () => void }) {
 
   useEffect(() => { loadEphem().then(setE); }, []);
   useEffect(() => { document.documentElement.lang = lang; }, [lang]);
-  useEffect(() => { history.replaceState(null, '', `#s=${scen.map(s => `${s.site}@${s.date}`).join(';')}&d=${days}&h=${horizon}&l=${lang}`); }, [scen, days, horizon, lang]);
+  useEffect(() => { history.replaceState(null, '', `#s=${scen.map(s => `${s.site}@${s.date}`).join(';')}&d=${days}&t=${terrain}&l=${lang}`); }, [scen, days, terrain, lang]);
   useEffect(() => { setCursor(c => Math.min(c, dur - 1)); }, [dur]);
 
   const maxDate = hourToDate(HOURS - dur);
   const upd = (i: number, patch: Partial<Scenario>) => setScen(s => s.map((x, j) => (j === i ? { ...x, ...patch } : x)));
-  const ms = useMemo(() => (e ? scen.map(s => metrics(e, s.site, dateToHour(s.date), dur, horizon)) : []), [e, scen, dur, horizon]);
+  const ms = useMemo(() => (e ? scen.map(s => metrics(e, s.site, dateToHour(s.date), dur, terrain)) : []), [e, scen, dur, terrain]);
   const act = scen[Math.min(active, scen.length - 1)];
-  const heat = useMemo(() => (e && tab === 'cal' ? REGIONS.map(r => ({ id: r.id, name: r.name, f: dailyFraction(e, r.id, horizon, prio) })) : []), [e, tab, horizon, prio]);
+  const heat = useMemo(() => (e && tab === 'cal' ? REGIONS.map(r => ({ id: r.id, name: r.name, f: dailyFraction(e, r.id, terrain, prio) })) : []), [e, tab, terrain, prio]);
   const ranking = useMemo(() => {
     if (!e || tab !== 'rank') return [];
     const h0 = dateToHour(act.date);
-    return REGIONS.map(r => ({ r, m: metrics(e, r.id, h0, dur, horizon) }))
+    return REGIONS.map(r => ({ r, m: metrics(e, r.id, h0, dur, terrain) }))
       .sort((a, b) => (prio === 'sun' ? b.m.sunH - a.m.sunH : prio === 'earth' ? b.m.earthH - a.m.earthH : b.m.bothH - a.m.bothH || b.m.sunH + b.m.earthH - a.m.sunH - a.m.earthH));
-  }, [e, tab, act.date, dur, horizon, prio]);
+  }, [e, tab, act.date, dur, terrain, prio]);
 
   const exportCsv = () => {
     if (!e) return; const rows = ['scenario,site,lat,lon,utc,hours_since_landing,sun_az,sun_el,sun_visible,earth_az,earth_el,earth_visible'];
@@ -82,7 +82,7 @@ export function Navigator({ onTeach }: { onTeach: () => void }) {
           <section className="nv-panel nv-scen">
             <div className="nv-row"><h2>{L.scenarios}</h2>
               <label className="nv-inline">{L.stay}<select value={days} onChange={ev => setDays(+ev.target.value)}>{[3, 7, 14, 28].map(d => <option key={d} value={d}>{d} {L.days}</option>)}</select></label>
-              <label className="nv-inline" title="Elevación mínima del horizonte local / minimum local horizon elevation">{L.horizon} <input type="range" min={0} max={3} step={0.5} value={horizon} onChange={ev => setHorizon(+ev.target.value)} /> <b>{horizon}°</b></label>
+              <label className="nv-inline">{L.horizon}<select value={terrain} onChange={ev => setTerrain(ev.target.value as Terrain)}><option value="lola">{L.terrainLola}</option><option value="flat">{L.terrainFlat}</option></select></label>
             </div>
             <div className="nv-cards">
               {scen.map((s, i) => { const m = ms[i], b = ms[0]; return (
@@ -91,7 +91,7 @@ export function Navigator({ onTeach }: { onTeach: () => void }) {
                     {scen.length > 1 && <button className="nv-x" onClick={ev => { ev.stopPropagation(); setScen(sc => sc.filter((_, j) => j !== i)); setActive(0); }} aria-label={L.remove}>×</button>}</div>
                   <label>{L.site}<select value={s.site} onChange={ev => upd(i, { site: ev.target.value })}>{REGIONS.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}</select></label>
                   <div className="nv-daterow"><label>{L.date}<input type="date" min="2028-01-01" max={maxDate} value={s.date} onChange={ev => ev.target.value && upd(i, { date: ev.target.value > maxDate ? maxDate : ev.target.value })} /></label>
-                    <button className="nv-best" onClick={ev => { ev.stopPropagation(); upd(i, { date: hourToDate(bestStart(e, s.site, dur, horizon, prio)) }); }} title={L.best}>★ {L.best}</button></div>
+                    <button className="nv-best" onClick={ev => { ev.stopPropagation(); upd(i, { date: hourToDate(bestStart(e, s.site, dur, terrain, prio)) }); }} title={L.best}>★ {L.best}</button></div>
                   <dl className="nv-stats">
                     <div><dt><i className="dot sun" />{L.sun}</dt><dd>{m.sunH} {L.h} <small>{Math.round((m.sunH / dur) * 100)}%</small>{i > 0 && <Delta v={m.sunH - b.sunH} unit={L.h} />}</dd></div>
                     <div><dt><i className="dot earth" />{L.earth}</dt><dd>{m.earthH} {L.h} <small>{Math.round((m.earthH / dur) * 100)}%</small>{i > 0 && <Delta v={m.earthH - b.earthH} unit={L.h} />}</dd></div>
@@ -126,7 +126,7 @@ export function Navigator({ onTeach }: { onTeach: () => void }) {
               {(['sky', 'cal', 'rank'] as const).map(k => <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{k === 'sky' ? L.panorama : k === 'cal' ? L.calendar : L.ranking}</button>)}
               <span className="nv-tab-ctx" style={{ color: COLORS[active] }}>{letter(active)} · {nameOf(act.site)}</span>
             </div>
-            {tab === 'sky' && <><p className="nv-hint">{L.panoramaHint}</p><Panorama e={e} siteId={act.site} start={dateToHour(act.date)} dur={dur} horizon={horizon} cursor={cursor} labels={{ sun: L.sun, earth: L.earth, below: L.below }} /></>}
+            {tab === 'sky' && <><p className="nv-hint">{L.panoramaHint}</p><Panorama e={e} siteId={act.site} start={dateToHour(act.date)} dur={dur} terrain={terrain} cursor={cursor} labels={{ sun: L.sun, earth: L.earth, below: L.below }} /></>}
             {tab === 'cal' && <><p className="nv-hint">{L.calendarHint} ({prio === 'sun' ? L.sun : prio === 'earth' ? L.earth : L.both})</p>
               <Heatmap data={heat} p={prio} activeSite={act.site} activeDay={Math.floor(dateToHour(act.date) / 24)} onPick={(id, d) => upd(active, { site: id, date: hourToDate(Math.min(d * 24, HOURS - dur)) })} /></>}
             {tab === 'rank' && <div className="nv-table-wrap"><table className="nv-table"><thead><tr><th>#</th><th>{L.site}</th><th>{L.sun}</th><th>{L.earth}</th><th>{L.both}</th><th>{L.longestDark}</th><th>{L.longestNoComm}</th></tr></thead>

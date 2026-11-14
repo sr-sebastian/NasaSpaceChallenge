@@ -1,7 +1,7 @@
 import type React from 'react';
 import { REGIONS, COLORS } from './regions';
 import type { Ephem, Metrics, Priority } from './data';
-import { HOURS } from './data';
+import { HOURS, horizonDeg, type Terrain } from './data';
 
 /** Mapa polar (proyección azimutal centrada en el polo sur). */
 export function PolarMap({ selected, onPick, scenarioSites }: { selected: string; onPick: (id: string) => void; scenarioSites: string[] }) {
@@ -50,8 +50,8 @@ export function Timeline({ rows, dur, cursor, setCursor, labels }: { rows: { nam
 }
 
 /** Panorama 360° del cielo: azimut (x) vs elevación (y). */
-export function Panorama({ e, siteId, start, dur, horizon, cursor, labels }: { e: Ephem; siteId: string; start: number; dur: number; horizon: number; cursor: number; labels: { sun: string; earth: string; below: string } }) {
-  const s = e.sites.find(x => x.id === siteId)!; const W = 720, H = 260, eMin = -6, eMax = 10;
+export function Panorama({ e, siteId, start, dur, terrain, cursor, labels }: { e: Ephem; siteId: string; start: number; dur: number; terrain: Terrain; cursor: number; labels: { sun: string; earth: string; below: string } }) {
+  const s = e.sites.find(x => x.id === siteId)!; const W = 720, H = 260, eMin = -6, eMax = 16;
   const X = (az: number) => (((az + 180) % 360) / 360) * W, // centrado en el norte (donde está la Tierra)
     Y = (el: number) => H - ((el - eMin) / (eMax - eMin)) * H;
   const pts = (tr: { az: number[]; el: number[] }) => { const p: string[] = []; for (let i = 0; i < dur; i += 2) { const h = Math.min(start + i, HOURS - 1); p.push(`${X(tr.az[h] / e.azScale).toFixed(1)},${Y(tr.el[h] / e.elScale).toFixed(1)}`); } return p; };
@@ -59,11 +59,10 @@ export function Panorama({ e, siteId, start, dur, horizon, cursor, labels }: { e
   const [sa, se] = at(s.sun), [ea, ee] = at(s.earth);
   return (
     <svg viewBox={`-34 -6 ${W + 44} ${H + 30}`} className="nv-pano" role="img" aria-label="Sky panorama">
-      <rect x={0} y={Y(horizon)} width={W} height={H - Y(horizon)} className="nv-ground" />
-      {[-5, 0, 5, 10].map(v => <g key={v}><line x1={0} x2={W} y1={Y(v)} y2={Y(v)} className="nv-grid" /><text x={-4} y={Y(v) + 3} textAnchor="end" className="nv-ax">{v}°</text></g>)}
+      {(() => { const pts: string[] = []; for (let x = 0; x <= W; x += 2) { const az = ((x / W) * 360 + 180) % 360; pts.push(`${x},${Y(horizonDeg(e, siteId, az, terrain)).toFixed(1)}`); } return <><path d={`M0,${H} L${pts.join(' L')} L${W},${H} Z`} className="nv-ground" /><path d={`M${pts.join(' L')}`} className="nv-horizon" fill="none" /></>; })()}
+      {[-5, 0, 5, 10, 15].map(v => <g key={v}><line x1={0} x2={W} y1={Y(v)} y2={Y(v)} className="nv-grid" /><text x={-4} y={Y(v) + 3} textAnchor="end" className="nv-ax">{v}°</text></g>)}
       {[0, 90, 180, 270, 360].map(x => <text key={x} x={(x / 360) * W} y={H + 18} textAnchor={x === 0 ? 'start' : x === 360 ? 'end' : 'middle'} className="nv-ax">{['S 180°', 'W 270°', 'N 0°', 'E 90°', 'S 180°'][x / 90]}</text>)}
-      <line x1={0} x2={W} y1={Y(horizon)} y2={Y(horizon)} className="nv-horizon" />
-      <text x={6} y={Y(horizon) + 14} className="nv-ax">{labels.below}</text>
+      <text x={6} y={H - 8} className="nv-ax">{labels.below}</text>
       {pts(s.sun).map((p, i) => { const [x, y] = p.split(','); return <circle key={'s' + i} cx={x} cy={y} r={1.6} className="nv-sun" />; })}
       {pts(s.earth).map((p, i) => { const [x, y] = p.split(','); return <circle key={'e' + i} cx={x} cy={y} r={1.6} className="nv-earth" />; })}
       <circle cx={X(sa)} cy={Y(se)} r={8} className="nv-sun nv-body" /><text x={X(sa) + 10} y={Y(se) - 8} className="nv-body-lbl">{labels.sun} {se.toFixed(1)}°</text>
