@@ -6,6 +6,7 @@ import { t, type Lang } from './i18n';
 import { PoleMap, Timeline, SkyMap, Heatmap, BatteryChart, shortName } from './Charts';
 import { runEnergy, DEFAULT_EQUIPMENT, type Equipment } from './energy';
 import { TOUR } from './tour';
+import { Icon } from './Icon';
 import type { CameraPreset } from './scene/SiteScene';
 import './nv.css';
 
@@ -104,11 +105,11 @@ export function Navigator() {
   return (
     <div className="app">
       <header className="top">
-        <div className="brand"><svg viewBox="0 0 32 32" aria-hidden className="brand-mark"><circle cx="16" cy="16" r="13" /><path d="M3 19 Q9 14 13 17 T22 15 T29 18" /></svg>
+        <div className="brand"><svg viewBox="0 0 40 40" aria-hidden className="brand-mark"><circle cx="20" cy="20" r="17" className="bm-disc" /><path d="M3.5 24 L10 19.5 L14 22 L19 16.5 L24 21 L28 18.5 L36.5 24" className="bm-ridge" /><circle cx="29" cy="11" r="3.2" className="bm-sun" /></svg>
           <div><b>{L.title}</b><small>{L.tagline}</small></div></div>
         <nav>
-          <button className="ghost" onClick={() => goStep(0)} disabled={!e}>{L.tour}</button>
-          <button className="ghost" onClick={() => setMethod(true)}>{L.method}</button>
+          <button className="btn" onClick={() => goStep(0)} disabled={!e}><Icon name="guide" />{L.tour}</button>
+          <button className="btn" onClick={() => setMethod(true)}><Icon name="info" />{L.method}</button>
           <div className="seg" role="group" aria-label="Idioma / Language">{(['es', 'en'] as Lang[]).map(l => <button key={l} aria-pressed={lang === l} onClick={() => setLang(l)}>{l.toUpperCase()}</button>)}</div>
         </nav>
       </header>
@@ -118,21 +119,21 @@ export function Navigator() {
         <div className="scen">
           {scen.map((s, i) => (
             <div key={i} className={`chip ${i === active ? 'on' : ''}`} style={{ '--c': COLORS[i] } as React.CSSProperties} onClick={() => setActive(i)}>
-              <span className="chip-l">{letter(i)}{i === 0 && <em>{L.base}</em>}</span>
+              <span className="chip-l" title={i === 0 ? L.base : undefined}>{letter(i)}</span>
               <label className="sr" htmlFor={`site-${i}`}>{L.site}</label>
-              <select id={`site-${i}`} value={s.site} onChange={ev => upd(i, { site: ev.target.value })}>{REGIONS.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}</select>
+              <span className="sel"><select id={`site-${i}`} value={s.site} onChange={ev => upd(i, { site: ev.target.value })}>{REGIONS.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}</select><Icon name="chevron" size={14} /></span>
               <label className="date-btn" htmlFor={`date-${i}`} title={L.date}>
-                <span className="mono">{fmtDate(s.date, lang)}</span>
+                <Icon name="calendar" size={15} /><span>{fmtDate(s.date, lang)}</span>
                 <input id={`date-${i}`} type="date" min="2028-01-01" max={maxDate} value={s.date} onChange={ev => ev.target.value && upd(i, { date: ev.target.value })} onClick={ev => { try { (ev.currentTarget as HTMLInputElement).showPicker(); } catch { /* sin showPicker */ } }} aria-label={L.date} />
               </label>
-              <button className="icon" title={L.bestHint} aria-label={L.best} onClick={ev => { ev.stopPropagation(); if (e) upd(i, { date: hourToDate(bestStart(e, s.site, dur, terrain, prio)) }); }}>★</button>
-              {scen.length > 1 && <button className="icon" aria-label={L.remove} onClick={ev => { ev.stopPropagation(); setScen(sc => sc.filter((_, j) => j !== i)); setActive(0); }}>×</button>}
+              <button className="ibtn" title={L.bestHint} aria-label={L.best} onClick={ev => { ev.stopPropagation(); if (e) upd(i, { date: hourToDate(bestStart(e, s.site, dur, terrain, prio)) }); }}><Icon name="star" size={16} /></button>
+              {scen.length > 1 && <button className="ibtn" title={L.remove} aria-label={L.remove} onClick={ev => { ev.stopPropagation(); setScen(sc => sc.filter((_, j) => j !== i)); setActive(0); }}><Icon name="close" size={15} /></button>}
             </div>
           ))}
-          {scen.length < 4 && <button className="chip add" onClick={() => { setScen(s => [...s, { ...s[s.length - 1] }]); setActive(scen.length); }}>+ {L.add}</button>}
+          {scen.length < 4 && <button className="chip add" onClick={() => { setScen(s => [...s, { ...s[s.length - 1] }]); setActive(scen.length); }}><Icon name="plus" size={15} />{L.add}</button>}
           <div className="scen-opts">
-            <label>{L.stay}<select value={days} onChange={ev => setDays(+ev.target.value)}>{[3, 6, 7, 14, 28].map(d => <option key={d} value={d}>{d} {L.days}</option>)}</select></label>
-            <label title={L.terrainHint}>{L.terrain}<select value={terrain} onChange={ev => setTerrain(ev.target.value as Terrain)}><option value="lola">{L.terrainLola}</option><option value="flat">{L.terrainFlat}</option></select></label>
+            <label>{L.stay}<span className="sel"><select value={days} onChange={ev => setDays(+ev.target.value)}>{[3, 6, 7, 14, 28].map(d => <option key={d} value={d}>{d} {L.days}</option>)}</select><Icon name="chevron" size={14} /></span></label>
+            <label title={L.terrainHint}>{L.terrain}<span className="sel"><select value={terrain} onChange={ev => setTerrain(ev.target.value as Terrain)}><option value="lola">{L.terrainLola}</option><option value="flat">{L.terrainFlat}</option></select><Icon name="chevron" size={14} /></span></label>
           </div>
         </div>
 
@@ -141,8 +142,8 @@ export function Navigator() {
             <p className="v-title">{L.answerFrom(`${letter(0)} · ${shortName(scen[0].site)}, ${fmtDate(scen[0].date, lang)}`, `${letter(active || 1)} · ${shortName(scen[active || 1].site)}, ${fmtDate(scen[active || 1].date, lang)}`)}</p>
             {(() => { const b = ms[0], m = ms[active || 1]; return <>
               <div className="v-stats">
-                <div><span className="k"><i className="sw sun" />{L.light}</span><Delta v={m.sunH - b.sunH} unit={L.h} better="up" /><span className="of">{b.sunH} → {m.sunH} {L.h}</span></div>
-                <div><span className="k"><i className="sw earth" />{L.comm}</span><Delta v={m.earthH - b.earthH} unit={L.h} better="up" /><span className="of">{b.earthH} → {m.earthH} {L.h}</span></div>
+                <div><span className="k"><Icon name="sun" size={15} className="c-sun" />{L.light}</span><Delta v={m.sunH - b.sunH} unit={L.h} better="up" /><span className="of">{b.sunH} → {m.sunH} {L.h}</span></div>
+                <div><span className="k"><Icon name="earth" size={15} className="c-earth" />{L.comm}</span><Delta v={m.earthH - b.earthH} unit={L.h} better="up" /><span className="of">{b.earthH} → {m.earthH} {L.h}</span></div>
                 <div><span className="k">{L.longestDark}</span><Delta v={m.longestDark - b.longestDark} unit={L.h} better="down" /><span className="of">{b.longestDark} → {m.longestDark} {L.h}</span></div>
                 <div><span className="k">{L.longestNoComm}</span><Delta v={m.longestNoComm - b.longestNoComm} unit={L.h} better="down" /><span className="of">{b.longestNoComm} → {m.longestNoComm} {L.h}</span></div>
               </div>
@@ -159,8 +160,8 @@ export function Navigator() {
               <div className="viewport">
                 <Suspense fallback={<div className="loading">{L.loading}</div>}>
                   <SiteScene flat={terrain === 'flat'} heights={terrain === 'flat' ? null : tile} size={241} step={100} mask={sceneMask} sun={bodies.sun} earth={bodies.earth}
-                    preset={preset} presetNonce={nonce} onUserMove={() => setPreset('free')}
-                    labels={{ sun: L.sun, earth: L.earth, lander: L.lander, above: L.aboveH, hidden: L.hidden, link: L.linkOn, noLink: L.linkOff, light: L.lightOn, dark: L.lightOff, compass: L.compass }} />
+                    preset={preset} presetNonce={nonce} onUserMove={() => setPreset('free')} onReset={() => look(preset === 'free' ? 'sun' : preset)}
+                    labels={{ sun: L.sun, earth: L.earth, lander: L.lander, above: L.aboveH, hidden: L.hidden, link: L.linkOn, noLink: L.linkOff, light: L.lightOn, dark: L.lightOff, compass: L.compass, zoomIn: L.zoomIn, zoomOut: L.zoomOut, resetView: L.resetView, wheelHint: L.wheelHint, touchHint: L.touchHint }} />
                 </Suspense>
                 <div className="hud-tl">
                   <small>{L.standing}</small>
@@ -168,12 +169,12 @@ export function Navigator() {
                   <span className="mono">{L.day} {Math.floor(cursor / 24) + 1} · {bodies.stamp}</span>
                 </div>
                 <div className="hud-tr">
-                  {(['sun', 'earth', 'aerial'] as const).map(p => <button key={p} aria-pressed={preset === p} onClick={() => look(p)}>{p === 'sun' ? L.viewSun : p === 'earth' ? L.viewEarth : L.viewAerial}</button>)}
+                  {(['sun', 'earth', 'aerial'] as const).map(p => <button key={p} aria-pressed={preset === p} onClick={() => look(p)}><Icon name={p} size={15} />{p === 'sun' ? L.viewSun : p === 'earth' ? L.viewEarth : L.viewAerial}</button>)}
                 </div>
               </div>
-              <p className="hint">{L.sceneHint} · {L.sizeNote}</p>
+              <p className="hint">{L.sizeNote}</p>
               <div className="transport">
-                <button className="play" onClick={() => { if (cursor >= dur - 1) setCursor(0); setPlaying(p => !p); }} aria-label={playing ? L.pause : L.play}>{playing ? '❚❚' : '▶'}</button>
+                <button className="play" onClick={() => { if (cursor >= dur - 1) setCursor(0); setPlaying(p => !p); }} aria-label={playing ? L.pause : L.play}><Icon name={playing ? 'pause' : 'play'} size={16} fill={!playing} /></button>
                 <div className="seg small" role="group" aria-label={L.speed}>{[1, 2, 6].map(v => <button key={v} aria-pressed={speed === v} onClick={() => setSpeed(v)}>×{v}</button>)}</div>
                 <input type="range" min={0} max={dur - 1} value={cursor} onChange={ev => { setPlaying(false); setCursor(+ev.target.value); }} aria-label="Hora" />
                 <span className="mono t-now">+{cursor} {L.h}</span>
@@ -196,7 +197,7 @@ export function Navigator() {
                     ))}
                   </tbody>
                 </table></div>
-                <div className="row-btns"><button className="ghost" onClick={exportCsv}>{L.csv}</button><button className="ghost" onClick={share}>{copied ? L.copied : L.share}</button></div>
+                <div className="row-btns"><button className="btn" onClick={exportCsv}><Icon name="download" />{L.csv}</button><button className="btn" onClick={share}><Icon name={copied ? 'check' : 'link'} />{copied ? L.copied : L.share}</button></div>
               </section>
               <section>
                 <div className="sec-h"><h2>{L.map}</h2></div>
@@ -216,12 +217,12 @@ export function Navigator() {
               <div className="sec-h"><h2>{L.energy}</h2><span className="tag" style={{ color: COLORS[active] }}>{letter(active)} · {shortName(act.site)}</span></div>
               <p className="hint lead">{L.energyHint}</p>
               <div className="eq">
-                <label>{L.panels}<select value={eq.panelW} onChange={ev => setEq({ ...eq, panelW: +ev.target.value })}>{[300, 600, 1200].map(v => <option key={v} value={v}>{v} W</option>)}</select></label>
-                <label>{L.battery}<select value={eq.batteryWh} onChange={ev => setEq({ ...eq, batteryWh: +ev.target.value })}>{[3000, 6000, 12000, 24000].map(v => <option key={v} value={v}>{v / 1000} kWh</option>)}</select></label>
-                <label>{L.load}<select value={eq.loadW} onChange={ev => setEq({ ...eq, loadW: +ev.target.value })}>{[150, 250, 400].map(v => <option key={v} value={v}>{v} W</option>)}</select></label>
+                <label>{L.panels}<span className="sel"><select value={eq.panelW} onChange={ev => setEq({ ...eq, panelW: +ev.target.value })}>{[300, 600, 1200].map(v => <option key={v} value={v}>{v} W</option>)}</select><Icon name="chevron" size={14} /></span></label>
+                <label>{L.battery}<span className="sel"><select value={eq.batteryWh} onChange={ev => setEq({ ...eq, batteryWh: +ev.target.value })}>{[3000, 6000, 12000, 24000].map(v => <option key={v} value={v}>{v / 1000} kWh</option>)}</select><Icon name="chevron" size={14} /></span></label>
+                <label>{L.load}<span className="sel"><select value={eq.loadW} onChange={ev => setEq({ ...eq, loadW: +ev.target.value })}>{[150, 250, 400].map(v => <option key={v} value={v}>{v} W</option>)}</select><Icon name="chevron" size={14} /></span></label>
                 <label className="chk"><input type="checkbox" checked={eq.autoHibernate} onChange={ev => setEq({ ...eq, autoHibernate: ev.target.checked })} />{L.hibernate}</label>
               </div>
-              <p className={`verdict-pill ${energy.survived ? 'ok' : 'ko'}`}>{energy.survived ? L.survived : L.died(energy.diedAt)}</p>
+              <p className={`verdict-pill ${energy.survived ? 'ok' : 'ko'}`}><Icon name={energy.survived ? 'check' : 'alert'} size={15} />{energy.survived ? L.survived : L.died(energy.diedAt)}</p>
               <BatteryChart battery={energy.battery} hib={energy.hibernating} sun={am.sun} cursor={cursor} diedAt={energy.diedAt} />
               <dl className="kv"><div><dt>{L.minBattery}</dt><dd>{Math.round(energy.minPct)} %</dd></div><div><dt>{L.hibernated}</dt><dd>{energy.hibernatedH} {L.h}</dd></div><div><dt>{L.dataSent}</dt><dd>{(energy.sentMB / 1000).toFixed(1)} GB</dd></div></dl>
             </section>}
@@ -247,15 +248,16 @@ export function Navigator() {
           <h3>{TOUR[tour].title[lang]}</h3>
           <p>{TOUR[tour].body[lang]}</p>
           <div className="tour-btns">
-            <button className="ghost" onClick={() => goStep(null)}>{L.close}</button>
-            {tour > 0 && <button className="ghost" onClick={() => goStep(tour - 1)}>{L.prev}</button>}
-            {tour < TOUR.length - 1 ? <button className="primary" onClick={() => goStep(tour + 1)}>{L.next}</button> : <button className="primary" onClick={() => goStep(null)}>{L.close}</button>}
+            <button className="btn quiet" onClick={() => goStep(null)}>{L.close}</button>
+            <span className="grow" />
+            {tour > 0 && <button className="btn" onClick={() => goStep(tour - 1)}>{L.prev}</button>}
+            {tour < TOUR.length - 1 ? <button className="btn btn-primary" onClick={() => goStep(tour + 1)}>{L.next}</button> : <button className="btn btn-primary" onClick={() => goStep(null)}>{L.done}</button>}
           </div>
         </div>
       )}
 
       {method && <div className="modal" onClick={() => setMethod(false)}><div className="modal-card" onClick={ev => ev.stopPropagation()} role="dialog" aria-label={L.method}>
-        <button className="icon close" onClick={() => setMethod(false)} aria-label={L.close}>×</button>
+        <button className="ibtn close" onClick={() => setMethod(false)} aria-label={L.close}><Icon name="close" size={16} /></button>
         {lang === 'es' ? <>
           <h2>Datos y método</h2>
           <p><b>Sol y Tierra:</b> NASA/JPL Horizons (efemérides DE441), azimut y elevación aparentes sin atmósfera, calculados de forma topocéntrica sobre la superficie lunar (<code>coord@301</code>) con la altura real del terreno, cada hora de 2028.</p>

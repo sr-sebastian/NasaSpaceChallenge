@@ -17,7 +17,7 @@ const es = {
   // escena
   compass: ['N', 'E', 'S', 'O'],
   standing: 'Estás parado en', viewSun: 'Mirar al Sol', viewEarth: 'Mirar a la Tierra', viewAerial: 'Vista aérea',
-  sceneHint: 'Arrastrá para mirar alrededor · rueda para acercar', lander: 'Tu módulo', sizeNote: 'Sol y Tierra dibujados 3× más grandes. Relieve real LRO/LOLA, sin exagerar.',
+  sceneHint: 'Arrastrá para mirar alrededor · rueda para acercar', lander: 'Tu módulo', sizeNote: 'Arrastrá para girar, pellizcá o usá Ctrl + rueda para acercar. El Sol y la Tierra se dibujan 3 veces más grandes; el relieve es el real de LRO/LOLA, sin exagerar.',
   aboveH: (d: string) => `${d} sobre el horizonte`, hidden: 'oculto tras el relieve', lightOn: 'paneles cargando', lightOff: 'en sombra',
   linkOn: 'enlace directo', linkOff: 'sin línea de vista',
   day: 'Día', play: 'Reproducir', pause: 'Pausar', speed: 'Velocidad', since: 'desde el aterrizaje',
@@ -34,7 +34,9 @@ const es = {
   survived: 'El módulo sobrevive la estadía', died: (h: number) => `La batería se agota en la hora ${h} de la estadía`, minBattery: 'Batería mínima', dataSent: 'Datos enviados a la Tierra',
   hibernated: 'Horas en hibernación',
   csv: 'Exportar CSV', share: 'Copiar enlace', copied: 'Enlace copiado',
-  next: 'Siguiente', prev: 'Anterior', close: 'Cerrar', step: 'Paso',
+  next: 'Siguiente', prev: 'Anterior', close: 'Cerrar', done: 'Terminar', step: 'Paso',
+  zoomIn: 'Acercar', zoomOut: 'Alejar', resetView: 'Volver a la vista inicial',
+  wheelHint: 'Arrastrá para girar · pellizcá o usá Ctrl + rueda para acercar', touchHint: 'Usá dos dedos para girar y acercar la vista',
   footer: 'NASA Space Apps Challenge 2026 · Datos: NASA/JPL Horizons, LRO/LOLA, USGS. Horas en UTC.',
 };
 export type Dict = typeof es;
@@ -55,7 +57,7 @@ const en: Dict = {
   },
   compass: ['N', 'E', 'S', 'W'],
   standing: 'You are standing at', viewSun: 'Look at the Sun', viewEarth: 'Look at Earth', viewAerial: 'Aerial view',
-  sceneHint: 'Drag to look around · scroll to zoom', lander: 'Your lander', sizeNote: 'Sun and Earth drawn 3× larger. Real LRO/LOLA terrain, no exaggeration.',
+  sceneHint: 'Drag to look around · scroll to zoom', lander: 'Your lander', sizeNote: 'Drag to turn, pinch or use Ctrl + scroll to zoom. Sun and Earth are drawn 3 times larger; the terrain is real LRO/LOLA data with no exaggeration.',
   aboveH: (d: string) => `${d} above the horizon`, hidden: 'hidden behind terrain', lightOn: 'panels charging', lightOff: 'in shadow',
   linkOn: 'direct link', linkOff: 'no line of sight',
   day: 'Day', play: 'Play', pause: 'Pause', speed: 'Speed', since: 'since landing',
@@ -71,7 +73,9 @@ const en: Dict = {
   survived: 'The lander survives the stay', died: (h: number) => `Battery runs out at hour ${h} of the stay`, minBattery: 'Minimum battery', dataSent: 'Data sent to Earth',
   hibernated: 'Hours hibernating',
   csv: 'Export CSV', share: 'Copy link', copied: 'Link copied',
-  next: 'Next', prev: 'Back', close: 'Close', step: 'Step',
+  next: 'Next', prev: 'Back', close: 'Close', done: 'Finish', step: 'Step',
+  zoomIn: 'Zoom in', zoomOut: 'Zoom out', resetView: 'Back to the starting view',
+  wheelHint: 'Drag to turn · pinch or use Ctrl + scroll to zoom', touchHint: 'Use two fingers to turn and zoom the view',
   footer: 'NASA Space Apps Challenge 2026 · Data: NASA/JPL Horizons, LRO/LOLA, USGS. Times in UTC.',
 };
 

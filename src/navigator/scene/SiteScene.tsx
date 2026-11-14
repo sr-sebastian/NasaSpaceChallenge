@@ -1,13 +1,15 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Stars } from '@react-three/drei';
 import { Bloom, EffectComposer, Vignette } from '@react-three/postprocessing';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type React from 'react';
 import * as THREE from 'three';
 import { FlatGround, LANDER_BASE, NearField, Terrain } from './ground';
 import { Lander } from './Lander';
+import { Icon } from '../Icon';
 
-type OrbitImpl = { target: THREE.Vector3; update: () => void };
+type OrbitImpl = { target: THREE.Vector3; update: () => void; touches: Record<string, number | null>; minDistance: number; maxDistance: number };
+export interface ViewApi { zoom: (factor: number) => void; orbit: (deg: number) => void; reset: () => void }
 
 /* Marco local del sitio: x = este, y = arriba, z = sur (el norte es −z). Unidades: metros. */
 export const dirFromAzEl = (az: number, el: number) => {
@@ -17,7 +19,7 @@ export const dirFromAzEl = (az: number, el: number) => {
 
 export interface Body { az: number; el: number; horizon: number }
 export type CameraPreset = 'sun' | 'earth' | 'aerial' | 'free';
-export interface SceneLabels { sun: string; earth: string; lander: string; above: (d: string) => string; hidden: string; link: string; noLink: string; light: string; dark: string; compass: string[] }
+export interface SceneLabels { sun: string; earth: string; lander: string; above: (d: string) => string; hidden: string; link: string; noLink: string; light: string; dark: string; compass: string[]; zoomIn: string; zoomOut: string; resetView: string; wheelHint: string; touchHint: string }
 
 const SIZE_EXAG = 3;               // Sol y Tierra dibujados 3 veces más grandes que su tamaño angular real
 const RING_R = 30000, SUN_R = 60000, EARTH_R = 50000;
@@ -95,10 +97,40 @@ function CameraRig({ preset, sunAz, earthAz, nonce }: { preset: CameraPreset; su
   useEffect(() => {
     if (!controls || preset === 'free') return;
     if (preset === 'aerial') { const d = dirFromAzEl(sunAz + 120, 0); camera.position.set(d.x * 11000, 7000, d.z * 11000); controls.target.set(0, -1200, 0); }
-    else { const az = preset === 'sun' ? sunAz : earthAz; const d = dirFromAzEl(az, 0), side = dirFromAzEl(az + 90, 0); camera.position.set(-d.x * 22 + side.x * 9, 4.5, -d.z * 22 + side.z * 9); controls.target.set(d.x * 40, 7, d.z * 40); }
+    else { const az = preset === 'sun' ? sunAz : earthAz; const d = dirFromAzEl(az, 0), side = dirFromAzEl(az + 90, 0); camera.position.set(-d.x * 20 + side.x * 8, 4.2, -d.z * 20 + side.z * 8); controls.target.set(d.x * 10, 4.5, d.z * 10); }
     controls.update();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [preset, nonce, controls]);
+  return null;
+}
+
+/** Expone zoom/órbita/reset a los botones de la interfaz y configura gestos:
+ *  - rueda o dos dedos en trackpad: desplazan la página (no secuestran el scroll)
+ *  - pellizco en trackpad (ctrlKey) o Ctrl/⌘ + rueda: acercar/alejar, proporcional y acotado
+ *  - táctil: un dedo desplaza la página, dos dedos giran y acercan */
+function ViewControls({ api, onHint, onReset }: { api: React.MutableRefObject<ViewApi | null>; onHint: (k: 'wheel' | 'touch') => void; onReset: () => void }) {
+  const { camera, controls, gl } = useThree() as unknown as { camera: THREE.PerspectiveCamera; controls: OrbitImpl | null; gl: THREE.WebGLRenderer };
+  useEffect(() => {
+    if (!controls) return;
+    const el = gl.domElement; el.style.touchAction = 'pan-y';
+    controls.touches = { ONE: null, TWO: THREE.TOUCH.DOLLY_ROTATE };
+    const dolly = (f: number) => {
+      const off = camera.position.clone().sub(controls.target); const d = THREE.MathUtils.clamp(off.length() * f, controls.minDistance, controls.maxDistance);
+      camera.position.copy(controls.target).add(off.setLength(d)); controls.update();
+    };
+    const orbit = (deg: number) => { const off = camera.position.clone().sub(controls.target); off.applyAxisAngle(new THREE.Vector3(0, 1, 0), THREE.MathUtils.degToRad(deg)); camera.position.copy(controls.target).add(off); controls.update(); };
+    api.current = { zoom: dolly, orbit, reset: onReset };
+    const wheel = (e: WheelEvent) => {
+      if (!(e.ctrlKey || e.metaKey)) { onHint('wheel'); return; }
+      e.preventDefault(); const dy = THREE.MathUtils.clamp(e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY, -80, 80);
+      dolly(Math.exp(dy * 0.006));
+    };
+    let warned = false;
+    const touch = (e: TouchEvent) => { if (e.touches.length === 1 && !warned) { warned = true; onHint('touch'); setTimeout(() => (warned = false), 4000); } };
+    el.addEventListener('wheel', wheel, { passive: false }); el.addEventListener('touchstart', touch, { passive: true });
+    return () => { el.removeEventListener('wheel', wheel); el.removeEventListener('touchstart', touch); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [controls, camera, gl]);
   return null;
 }
 
@@ -133,10 +165,18 @@ function Overlay({ markers, tape, sunAz, earthAz }: { markers: Marker[]; tape: R
   return null;
 }
 
-export function SiteScene({ heights, size, step, mask, sun, earth, labels, preset, presetNonce, onUserMove, flat }: {
+export function SiteScene({ heights, size, step, mask, sun, earth, labels, preset, presetNonce, onUserMove, onReset, flat }: {
   heights: Int16Array | null; size: number; step: number; mask: Int16Array; sun: Body; earth: Body; labels: SceneLabels;
-  preset: CameraPreset; presetNonce: number; onUserMove: () => void; flat: boolean;
+  preset: CameraPreset; presetNonce: number; onUserMove: () => void; onReset: () => void; flat: boolean;
 }) {
+  const api = useRef<ViewApi | null>(null);
+  const [hint, setHint] = useState<'wheel' | 'touch' | null>(null); const hintT = useRef(0);
+  const showHint = (k: 'wheel' | 'touch') => { setHint(k); clearTimeout(hintT.current); hintT.current = window.setTimeout(() => setHint(null), 1600); };
+  const onKey = (e: React.KeyboardEvent) => {
+    const a = api.current; if (!a) return;
+    if (e.key === 'ArrowLeft') a.orbit(6); else if (e.key === 'ArrowRight') a.orbit(-6); else if (e.key === '+' || e.key === '=') a.zoom(0.8); else if (e.key === '-') a.zoom(1.25); else return;
+    e.preventDefault(); onUserMove();
+  };
   const sunDir = useMemo(() => dirFromAzEl(sun.az, sun.el), [sun.az, sun.el]);
   const earthDir = useMemo(() => dirFromAzEl(earth.az, earth.el), [earth.az, earth.el]);
   // Fracción del disco solar sobre el horizonte (diámetro 0.53°): suaviza amanecer y atardecer
@@ -149,7 +189,7 @@ export function SiteScene({ heights, size, step, mask, sun, earth, labels, prese
   const ready = flat || !!heights;
   const ticks = useMemo(() => Array.from({ length: 72 }, (_, i) => i * 15 - 360), []);
   return (
-    <div className="sc-root">
+    <div className="sc-root" tabIndex={0} onKeyDown={onKey} aria-label={labels.wheelHint}>
       <Canvas shadows camera={{ position: [-20, 5, 14], fov: 55, near: 0.3, far: 200000 }} gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping }} dpr={[1, 1.75]}>
         <color attach="background" args={['#020304']} />
         <Stars radius={150000} depth={20000} count={2500} factor={2600} saturation={0} fade={false} speed={0} />
@@ -163,7 +203,8 @@ export function SiteScene({ heights, size, step, mask, sun, earth, labels, prese
         <Lander base={LANDER_BASE} sunDir={sunDir} earthDir={earthDir} charging={frac > 0} linked={earthUp} />
         <Sun pos={sunPos} frac={frac} />
         <Earth pos={earthPos} sunDir={sunDir} />
-        <OrbitControls makeDefault enableDamping target={[0, 4, 0]} minDistance={6} maxDistance={30000} maxPolarAngle={Math.PI * 0.52} onStart={onUserMove} />
+        <OrbitControls makeDefault enableDamping dampingFactor={0.09} rotateSpeed={0.42} enableZoom={false} enablePan={false} target={[0, 4, 0]} minDistance={6} maxDistance={30000} maxPolarAngle={Math.PI * 0.5} onStart={onUserMove} />
+        <ViewControls api={api} onHint={showHint} onReset={() => onReset()} />
         <CameraRig preset={preset} sunAz={sun.az} earthAz={earth.az} nonce={presetNonce} />
         <Overlay markers={markers} tape={tapeRef} sunAz={sun.az} earthAz={earth.az} />
         <EffectComposer multisampling={0}>
@@ -173,18 +214,28 @@ export function SiteScene({ heights, size, step, mask, sun, earth, labels, prese
       </Canvas>
 
       <div ref={pinRef} className="mk-pin"><span>{labels.lander}</span></div>
-      <div ref={sunRef} className={`mk sun ${frac > 0 ? '' : 'off'}`}>
-        <i className="mk-ring" /><i className="mk-arrow" />
-        <div className="mk-card"><span className="mk-ico">☀</span><b>{labels.sun}</b><strong className="mono">{fmt(sun)}</strong><em>{frac > 0 ? labels.light : labels.hidden}</em></div>
-      </div>
-      <div ref={earthRef} className={`mk earth ${earthUp ? '' : 'off'}`}>
-        <i className="mk-ring" /><i className="mk-arrow" />
-        <div className="mk-card"><span className="mk-ico">◉</span><b>{labels.earth}</b><strong className="mono">{fmt(earth)}</strong><em>{earthUp ? labels.link : labels.hidden}</em></div>
-      </div>
+      {([['sun', sunRef, frac > 0, sun, frac > 0 ? labels.light : labels.hidden], ['earth', earthRef, earthUp, earth, earthUp ? labels.link : labels.hidden]] as const).map(([k, ref, on, b, status]) => (
+        <div key={k} ref={ref} className={`mk ${k} ${on ? '' : 'off'}`}>
+          <svg className="mk-lead" width="1" height="1" aria-hidden><circle cx="0" cy="0" r="16" /><path d="M13.1 -9.2 L36 -26 H46" /></svg>
+          <i className="mk-arrow" />
+          <div className="mk-card">
+            <span className="mk-ico"><Icon name={k} size={16} /></span>
+            <span className="mk-name">{k === 'sun' ? labels.sun : labels.earth}</span>
+            <span className="mk-val mono">{fmt(b)}</span>
+            <span className="mk-st"><i />{status}</span>
+          </div>
+        </div>
+      ))}
       <div ref={tapeRef} className="tape" aria-hidden>
         <div className="tape-strip">{ticks.map(a => { const n = ((a % 360) + 360) % 360; const major = n % 90 === 0; return <span key={a} className={major ? 'maj' : n % 45 === 0 ? 'mid' : ''} style={{ '--a': a } as React.CSSProperties}>{(major || n % 45 === 0) && <em>{major ? labels.compass[n / 90] : n}</em>}</span>; })}</div>
         <i className={`tape-mk sun ${frac > 0 ? '' : 'off'}`} /><i className={`tape-mk earth ${earthUp ? '' : 'off'}`} /><b className="tape-c" />
       </div>
+      <div className="vc" role="group">
+        <button onClick={() => { api.current?.zoom(0.7); onUserMove(); }} aria-label={labels.zoomIn} title={labels.zoomIn}><Icon name="plus" size={16} /></button>
+        <button onClick={() => { api.current?.zoom(1.45); onUserMove(); }} aria-label={labels.zoomOut} title={labels.zoomOut}><Icon name="minus" size={16} /></button>
+        <button onClick={() => api.current?.reset()} aria-label={labels.resetView} title={labels.resetView}><Icon name="reset" size={16} /></button>
+      </div>
+      <p className={`sc-hint ${hint ? 'on' : ''}`} role="status">{hint === 'touch' ? labels.touchHint : labels.wheelHint}</p>
     </div>
   );
 }

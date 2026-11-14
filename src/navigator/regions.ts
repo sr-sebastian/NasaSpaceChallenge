@@ -13,4 +13,5 @@ export const REGIONS: Region[] = [
   { id: 'degerlache-2', name: 'de Gerlache Rim 2', lat: -88.4691, lon: -67.8548, elevationM: 1569, areaKm2: 400, centroid: [-88.23, -64.6284], polygon: [[-87.7853, -60.5725], [-88.0239, -77.4712], [-88.66, -71.3421], [-88.3279, -49.3987], [-87.7853, -60.5725]] },
   { id: 'slater', name: 'Slater Plain', lat: -87.273, lon: 127.6295, elevationM: 528, areaKm2: 400, centroid: [-87.1637, 125.5377], polygon: [[-87.6222, 123.6906], [-87.2023, 134.9976], [-86.7032, 126.8696], [-87.0511, 116.5672], [-87.6222, 123.6906]] },
 ];
-export const COLORS = ['#f2a93b', '#5aa9ff', '#d77bff', '#4fd1a5'];
+// Colores de escenario: deliberadamente distintos del ámbar del Sol y el azul de la Tierra.
+export const COLORS = ['#b8a4ff', '#ff86b8', '#d4e36e', '#5fd4c6'];
