@@ -16,7 +16,7 @@ const es = {
   },
   // escena
   compass: ['N', 'E', 'S', 'O'],
-  standing: 'Estás parado en', viewSun: 'Mirar al Sol', viewEarth: 'Mirar a la Tierra', viewAerial: 'Vista aérea',
+  standing: 'Estás parado en', viewLander: 'Ver módulo', viewSun: 'Mirar al Sol', viewEarth: 'Mirar a la Tierra', viewAerial: 'Vista aérea',
   sceneHint: 'Arrastrá para mirar alrededor · rueda para acercar', lander: 'Tu módulo', sizeNote: 'Arrastrá para girar, pellizcá o usá Ctrl + rueda para acercar. El Sol y la Tierra se dibujan 3 veces más grandes; el relieve es el real de LRO/LOLA, sin exagerar.',
   aboveH: (d: string) => `${d} sobre el horizonte`, hidden: 'oculto tras el relieve', lightOn: 'paneles cargando', lightOff: 'en sombra',
   linkOn: 'enlace directo', linkOff: 'sin línea de vista',
@@ -56,7 +56,7 @@ const en: Dict = {
     return `You ${part(sun, 'sunlight')} and ${part(earth, 'communication')}.`;
   },
   compass: ['N', 'E', 'S', 'W'],
-  standing: 'You are standing at', viewSun: 'Look at the Sun', viewEarth: 'Look at Earth', viewAerial: 'Aerial view',
+  standing: 'You are standing at', viewLander: 'View lander', viewSun: 'Look at the Sun', viewEarth: 'Look at Earth', viewAerial: 'Aerial view',
   sceneHint: 'Drag to look around · scroll to zoom', lander: 'Your lander', sizeNote: 'Drag to turn, pinch or use Ctrl + scroll to zoom. Sun and Earth are drawn 3 times larger; the terrain is real LRO/LOLA data with no exaggeration.',
   aboveH: (d: string) => `${d} above the horizon`, hidden: 'hidden behind terrain', lightOn: 'panels charging', lightOff: 'in shadow',
   linkOn: 'direct link', linkOff: 'no line of sight',

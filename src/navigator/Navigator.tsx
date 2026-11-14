@@ -160,7 +160,7 @@ export function Navigator() {
               <div className="viewport">
                 <Suspense fallback={<div className="loading">{L.loading}</div>}>
                   <SiteScene flat={terrain === 'flat'} heights={terrain === 'flat' ? null : tile} size={241} step={100} mask={sceneMask} sun={bodies.sun} earth={bodies.earth}
-                    preset={preset} presetNonce={nonce} onUserMove={() => setPreset('free')} onReset={() => look(preset === 'free' ? 'sun' : preset)}
+                    preset={preset} presetNonce={nonce} onUserMove={() => setPreset('free')} onReset={() => look(preset === 'free' ? 'sun' : preset)} onFocusLander={() => look('lander')}
                     labels={{ sun: L.sun, earth: L.earth, lander: L.lander, above: L.aboveH, hidden: L.hidden, link: L.linkOn, noLink: L.linkOff, light: L.lightOn, dark: L.lightOff, compass: L.compass, zoomIn: L.zoomIn, zoomOut: L.zoomOut, resetView: L.resetView, wheelHint: L.wheelHint, touchHint: L.touchHint }} />
                 </Suspense>
                 <div className="hud-tl">
@@ -169,7 +169,7 @@ export function Navigator() {
                   <span className="mono">{L.day} {Math.floor(cursor / 24) + 1} · {bodies.stamp}</span>
                 </div>
                 <div className="hud-tr">
-                  {(['sun', 'earth', 'aerial'] as const).map(p => <button key={p} aria-pressed={preset === p} onClick={() => look(p)}><Icon name={p} size={15} />{p === 'sun' ? L.viewSun : p === 'earth' ? L.viewEarth : L.viewAerial}</button>)}
+                  {(['lander', 'sun', 'earth', 'aerial'] as const).map(p => <button key={p} aria-pressed={preset === p} onClick={() => look(p)}><Icon name={p} size={15} />{p === 'lander' ? L.viewLander : p === 'sun' ? L.viewSun : p === 'earth' ? L.viewEarth : L.viewAerial}</button>)}
                 </div>
               </div>
               <p className="hint">{L.sizeNote}</p>

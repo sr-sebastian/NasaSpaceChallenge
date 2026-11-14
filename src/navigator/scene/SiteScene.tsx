@@ -18,7 +18,7 @@ export const dirFromAzEl = (az: number, el: number) => {
 };
 
 export interface Body { az: number; el: number; horizon: number }
-export type CameraPreset = 'sun' | 'earth' | 'aerial' | 'free';
+export type CameraPreset = 'lander' | 'sun' | 'earth' | 'aerial' | 'free';
 export interface SceneLabels { sun: string; earth: string; lander: string; above: (d: string) => string; hidden: string; link: string; noLink: string; light: string; dark: string; compass: string[]; zoomIn: string; zoomOut: string; resetView: string; wheelHint: string; touchHint: string }
 
 const SIZE_EXAG = 3;               // Sol y Tierra dibujados 3 veces más grandes que su tamaño angular real
@@ -96,7 +96,10 @@ function CameraRig({ preset, sunAz, earthAz, nonce }: { preset: CameraPreset; su
   const { camera, controls } = useThree() as unknown as { camera: THREE.PerspectiveCamera; controls: OrbitImpl | null };
   useEffect(() => {
     if (!controls || preset === 'free') return;
-    if (preset === 'aerial') { const d = dirFromAzEl(sunAz + 120, 0); camera.position.set(d.x * 11000, 7000, d.z * 11000); controls.target.set(0, -1200, 0); }
+    if (preset === 'lander') {
+      // centrado en el módulo, con el Sol de costado para que se vea iluminado y con su sombra
+      const d = dirFromAzEl(sunAz + 115, 0); camera.position.set(d.x * 13, LANDER_BASE + 5.5, d.z * 13); controls.target.set(0, LANDER_BASE + 2.2, 0);
+    } else if (preset === 'aerial') { const d = dirFromAzEl(sunAz + 120, 0); camera.position.set(d.x * 11000, 7000, d.z * 11000); controls.target.set(0, -1200, 0); }
     else { const az = preset === 'sun' ? sunAz : earthAz; const d = dirFromAzEl(az, 0), side = dirFromAzEl(az + 90, 0); camera.position.set(-d.x * 20 + side.x * 8, 4.2, -d.z * 20 + side.z * 8); controls.target.set(d.x * 10, 4.5, d.z * 10); }
     controls.update();
   }, [preset, nonce, controls]);
@@ -163,9 +166,9 @@ function Overlay({ markers, tape, sunAz, earthAz }: { markers: Marker[]; tape: R
   return null;
 }
 
-export function SiteScene({ heights, size, step, mask, sun, earth, labels, preset, presetNonce, onUserMove, onReset, flat }: {
+export function SiteScene({ heights, size, step, mask, sun, earth, labels, preset, presetNonce, onUserMove, onReset, onFocusLander, flat }: {
   heights: Int16Array | null; size: number; step: number; mask: Int16Array; sun: Body; earth: Body; labels: SceneLabels;
-  preset: CameraPreset; presetNonce: number; onUserMove: () => void; onReset: () => void; flat: boolean;
+  preset: CameraPreset; presetNonce: number; onUserMove: () => void; onReset: () => void; onFocusLander: () => void; flat: boolean;
 }) {
   const api = useRef<ViewApi | null>(null);
   const [hint, setHint] = useState<'wheel' | 'touch' | null>(null); const hintT = useRef(0);
@@ -211,7 +214,7 @@ export function SiteScene({ heights, size, step, mask, sun, earth, labels, prese
         </EffectComposer>
       </Canvas>
 
-      <div ref={pinRef} className="mk-pin"><span>{labels.lander}</span></div>
+      <div ref={pinRef} className="mk-pin"><button onClick={onFocusLander} title={labels.lander}>{labels.lander}</button></div>
       {([['sun', sunRef, frac > 0, sun, frac > 0 ? labels.light : labels.hidden], ['earth', earthRef, earthUp, earth, earthUp ? labels.link : labels.hidden]] as const).map(([k, ref, on, b, status]) => (
         <div key={k} ref={ref} className={`mk ${k} ${on ? '' : 'off'}`}>
           <svg className="mk-lead" width="1" height="1" aria-hidden><circle cx="0" cy="0" r="16" /><path d="M13.1 -9.2 L36 -26 H46" /></svg>

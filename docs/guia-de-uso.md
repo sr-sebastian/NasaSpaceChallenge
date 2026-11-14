@@ -34,7 +34,7 @@ Estás parado junto al módulo, en el terreno real del sitio.
 
 - **Arrastrá** para mirar alrededor. **Pellizcá** en el trackpad o usá **Ctrl + rueda** para acercar. Los botones **+**, **−** y **volver** están abajo a la derecha.
 - En el celular, un dedo desplaza la página y **dos dedos** mueven la vista.
-- **Mirar al Sol**, **Mirar a la Tierra** y **Vista aérea** te llevan a encuadres útiles.
+- **Ver módulo** centra la cámara en el lander (también podés tocar la etiqueta «Tu módulo»). **Mirar al Sol**, **Mirar a la Tierra** y **Vista aérea** te llevan a otros encuadres útiles.
 - Los **marcadores** dicen si el Sol o la Tierra están visibles o tapados por el relieve, y a qué altura sobre el horizonte. Si salen de cuadro, una **flecha** en el borde indica hacia dónde girar. La **brújula** de abajo muestra su dirección.
 - El módulo orienta sus paneles hacia el Sol y su antena hacia la Tierra, igual que lo haría uno real.
 - El Sol y la Tierra se dibujan 3 veces más grandes para que se vean. El relieve está a escala real.
