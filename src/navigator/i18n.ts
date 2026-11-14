@@ -1,39 +1,76 @@
 export type Lang = 'es' | 'en';
-const T = {
-  es: {
-    title: 'Lunar Landing Site Navigator', tagline: '¿Dónde y cuándo aterrizar en el polo sur de la Luna?',
-    q: 'Si cambio el sitio o la fecha, ¿cuánto tiempo gano o pierdo de luz y de comunicación?',
-    method: 'Datos y método', teach: 'Simulador 3D (docentes)', loading: 'Cargando efemérides de NASA/JPL Horizons…',
-    scenarios: 'Escenarios', stay: 'Estadía', days: 'días', horizon: 'Horizonte', terrainLola: 'Relieve real (LOLA)', terrainFlat: 'Plano 0° (sin relieve)', add: 'Agregar escenario',
-    site: 'Sitio', date: 'Aterrizaje (UTC)', base: 'BASE', remove: 'Quitar', best: 'Mejor fecha',
-    sun: 'Sol', earth: 'Tierra', both: 'Ambos', light: 'Luz solar', comm: 'Enlace directo con la Tierra',
-    longestDark: 'Noche más larga', longestNoComm: 'Mayor apagón de radio', h: 'h',
-    vs: 'vs', gain: 'ganás', lose: 'perdés', same: 'igual',
-    sentence: (a: string, b: string, sun: number, earth: number) =>
-      `Si pasás de ${a} a ${b}, ${sun === 0 ? 'mantenés las mismas horas de luz' : `${sun > 0 ? 'ganás' : 'perdés'} ${Math.abs(sun)} h de luz`} y ${earth === 0 ? 'las mismas de comunicación' : `${earth > 0 ? 'ganás' : 'perdés'} ${Math.abs(earth)} h de comunicación`}.`,
-    timeline: 'Ventanas de operación', since: 'desde el aterrizaje', panorama: 'Cielo desde el sitio', panoramaHint: 'Recorrido del Sol y la Tierra sobre el horizonte durante la estadía (azimut vs elevación).',
-    calendar: 'Calendario 2028', calendarHint: 'Fracción de cada día con visibilidad. Clic para usar esa fecha en el escenario activo.',
-    ranking: 'Ranking de sitios para esta fecha', map: 'Regiones candidatas Artemis III', mapHint: 'Clic en una región para asignarla al escenario activo.',
-    priority: 'Prioridad', active: 'activo', csv: 'Exportar CSV', share: 'Copiar enlace', copied: '¡Copiado!',
-    below: 'bajo el horizonte', above: 'sobre el horizonte', now: 'Hora',
+
+const es = {
+  title: 'Lunar Landing Site Navigator', tagline: 'Polo sur de la Luna · regiones candidatas de Artemis III',
+  method: 'Datos y método', tour: 'Recorrido guiado', loading: 'Cargando efemérides de NASA/JPL y relieve LRO/LOLA…',
+  q: 'Si cambio el sitio o la fecha, ¿cuánto tiempo gano o pierdo de luz y de comunicación?',
+  scenario: 'Escenario', base: 'base', add: 'Agregar escenario', remove: 'Quitar escenario', site: 'Sitio', date: 'Aterrizaje (UTC)',
+  stay: 'Estadía', days: 'días', best: 'Mejor fecha', bestHint: 'Busca en 2028 el día de aterrizaje con más horas de Sol y Tierra para este sitio',
+  sun: 'Sol', earth: 'Tierra', both: 'Sol y Tierra', h: 'h',
+  light: 'Luz solar', comm: 'Contacto directo con la Tierra', longestDark: 'Noche más larga', longestNoComm: 'Mayor tiempo sin contacto',
+  answerFrom: (a: string, b: string) => `Cambiar de ${a} a ${b}`,
+  answerOne: 'Agregá un segundo escenario para ver cuánto ganás o perdés.',
+  sentence: (sun: number, earth: number) => {
+    const part = (v: number, what: string) => (v === 0 ? `las mismas horas de ${what}` : `${v > 0 ? 'ganás' : 'perdés'} ${Math.abs(v)} h de ${what}`);
+    return `${part(sun, 'luz').replace(/^./, c => c.toUpperCase())} y ${part(earth, 'comunicación')}.`;
   },
-  en: {
-    title: 'Lunar Landing Site Navigator', tagline: 'Where and when should we land at the lunar south pole?',
-    q: 'If I change the site or the date, how much sunlight and communication time do I gain or lose?',
-    method: 'Data & method', teach: '3D simulator (educators)', loading: 'Loading NASA/JPL Horizons ephemerides…',
-    scenarios: 'Scenarios', stay: 'Stay', days: 'days', horizon: 'Horizon', terrainLola: 'Real terrain (LOLA)', terrainFlat: 'Flat 0° (no terrain)', add: 'Add scenario',
-    site: 'Site', date: 'Landing (UTC)', base: 'BASE', remove: 'Remove', best: 'Best date',
-    sun: 'Sun', earth: 'Earth', both: 'Both', light: 'Sunlight', comm: 'Direct-to-Earth link',
-    longestDark: 'Longest night', longestNoComm: 'Longest radio blackout', h: 'h',
-    vs: 'vs', gain: 'gain', lose: 'lose', same: 'same',
-    sentence: (a: string, b: string, sun: number, earth: number) =>
-      `Moving from ${a} to ${b}, you ${sun === 0 ? 'keep the same sunlight' : `${sun > 0 ? 'gain' : 'lose'} ${Math.abs(sun)} h of sunlight`} and ${earth === 0 ? 'the same comms time' : `${earth > 0 ? 'gain' : 'lose'} ${Math.abs(earth)} h of Earth contact`}.`,
-    timeline: 'Operating windows', since: 'since landing', panorama: 'Sky from the site', panoramaHint: 'Sun and Earth paths above the horizon during the stay (azimuth vs elevation).',
-    calendar: '2028 calendar', calendarHint: 'Fraction of each day with visibility. Click to use that date in the active scenario.',
-    ranking: 'Site ranking for this date', map: 'Artemis III candidate regions', mapHint: 'Click a region to assign it to the active scenario.',
-    priority: 'Priority', active: 'active', csv: 'Export CSV', share: 'Copy link', copied: 'Copied!',
-    below: 'below horizon', above: 'above horizon', now: 'Hour',
-  },
+  // escena
+  standing: 'Estás parado en', viewSun: 'Mirar al Sol', viewEarth: 'Mirar a la Tierra', viewAerial: 'Vista aérea',
+  sceneHint: 'Arrastrá para mirar alrededor · rueda para acercar', lander: 'Tu módulo', sizeNote: 'Sol y Tierra dibujados 3× más grandes. Relieve real LRO/LOLA, sin exagerar.',
+  aboveH: (d: string) => `${d} sobre el horizonte`, hidden: 'tapado por el relieve', lightOn: 'paneles cargando', lightOff: 'en sombra',
+  linkOn: 'enlace directo', linkOff: 'sin línea de vista',
+  day: 'Día', play: 'Reproducir', pause: 'Pausar', speed: 'Velocidad', since: 'desde el aterrizaje',
+  terrain: 'Horizonte', terrainLola: 'Relieve real (LOLA)', terrainFlat: 'Sin relieve (0°)', terrainHint: 'Compará con un horizonte plano para ver cuánto importan las montañas',
+  // paneles
+  compare: 'Comparación', metric: 'Métrica', map: 'Regiones candidatas', mapHint: 'Tocá una región para usarla en el escenario activo.',
+  windows: 'Ventanas de operación', windowsHint: 'Cada barra es una hora: color = visible, vacío = oculto. Tocá para mover el tiempo.',
+  skymap: 'Mapa del cielo', skymapHint: 'El horizonte completo (360°) desplegado como una foto panorámica. La silueta gris son las montañas reales; arriba está el cielo. Las líneas punteadas muestran por dónde pasan el Sol y la Tierra durante la estadía.',
+  now: 'ahora', path: 'recorrido',
+  calendar: 'Calendario de ventanas 2028', calendarHint: 'Cada celda es un día de aterrizaje y cada fila un sitio. Más intenso = más horas visibles durante la estadía. Tocá una celda para usarla.',
+  priority: 'Prioridad', ranking: 'Ranking para la fecha del escenario activo',
+  energy: 'Energía del módulo', energyHint: 'Simulación con la luz real de este escenario: los paneles cargan con Sol y la batería tiene que aguantar las noches.',
+  panels: 'Paneles', battery: 'Batería', load: 'Consumo', hibernate: 'Hibernar si la batería baja del 25 %',
+  survived: 'El módulo sobrevive la estadía', died: (h: number) => `La batería se agota en la hora ${h} de la estadía`, minBattery: 'Batería mínima', dataSent: 'Datos enviados a la Tierra',
+  hibernated: 'Horas en hibernación',
+  csv: 'Exportar CSV', share: 'Copiar enlace', copied: 'Enlace copiado',
+  next: 'Siguiente', prev: 'Anterior', close: 'Cerrar', step: 'Paso',
+  footer: 'NASA Space Apps Challenge 2026 · Datos: NASA/JPL Horizons, LRO/LOLA, USGS. Horas en UTC.',
 };
-export type Dict = typeof T.es;
-export const t = (l: Lang): Dict => T[l] as Dict;
+export type Dict = typeof es;
+
+const en: Dict = {
+  title: 'Lunar Landing Site Navigator', tagline: 'Lunar south pole · Artemis III candidate regions',
+  method: 'Data & method', tour: 'Guided tour', loading: 'Loading NASA/JPL ephemerides and LRO/LOLA terrain…',
+  q: 'If I change the site or the date, how much sunlight and communication time do I gain or lose?',
+  scenario: 'Scenario', base: 'base', add: 'Add scenario', remove: 'Remove scenario', site: 'Site', date: 'Landing (UTC)',
+  stay: 'Stay', days: 'days', best: 'Best date', bestHint: 'Find the 2028 landing day with the most Sun and Earth hours for this site',
+  sun: 'Sun', earth: 'Earth', both: 'Sun and Earth', h: 'h',
+  light: 'Sunlight', comm: 'Direct contact with Earth', longestDark: 'Longest night', longestNoComm: 'Longest time without contact',
+  answerFrom: (a: string, b: string) => `Switching from ${a} to ${b}`,
+  answerOne: 'Add a second scenario to see what you gain or lose.',
+  sentence: (sun: number, earth: number) => {
+    const part = (v: number, what: string) => (v === 0 ? `the same ${what} time` : `${v > 0 ? 'gain' : 'lose'} ${Math.abs(v)} h of ${what}`);
+    return `You ${part(sun, 'sunlight')} and ${part(earth, 'communication')}.`;
+  },
+  standing: 'You are standing at', viewSun: 'Look at the Sun', viewEarth: 'Look at Earth', viewAerial: 'Aerial view',
+  sceneHint: 'Drag to look around · scroll to zoom', lander: 'Your lander', sizeNote: 'Sun and Earth drawn 3× larger. Real LRO/LOLA terrain, no exaggeration.',
+  aboveH: (d: string) => `${d} above the horizon`, hidden: 'blocked by terrain', lightOn: 'panels charging', lightOff: 'in shadow',
+  linkOn: 'direct link', linkOff: 'no line of sight',
+  day: 'Day', play: 'Play', pause: 'Pause', speed: 'Speed', since: 'since landing',
+  terrain: 'Horizon', terrainLola: 'Real terrain (LOLA)', terrainFlat: 'No terrain (0°)', terrainHint: 'Compare with a flat horizon to see how much the mountains matter',
+  compare: 'Comparison', metric: 'Metric', map: 'Candidate regions', mapHint: 'Tap a region to use it in the active scenario.',
+  windows: 'Operating windows', windowsHint: 'Each bar is one hour: color = visible, empty = hidden. Tap to move in time.',
+  skymap: 'Sky map', skymapHint: 'The full 360° horizon unrolled like a panorama photo. The grey silhouette is the real terrain; the sky is above it. Dotted lines show where the Sun and Earth travel during the stay.',
+  now: 'now', path: 'path',
+  calendar: '2028 window calendar', calendarHint: 'Each cell is a landing day and each row a site. Stronger = more visible hours during the stay. Tap a cell to use it.',
+  priority: 'Priority', ranking: 'Ranking for the active scenario’s date',
+  energy: 'Lander power', energyHint: 'Simulated with this scenario’s real lighting: panels charge in sunlight and the battery must last through the nights.',
+  panels: 'Panels', battery: 'Battery', load: 'Load', hibernate: 'Hibernate when battery drops below 25%',
+  survived: 'The lander survives the stay', died: (h: number) => `Battery runs out at hour ${h} of the stay`, minBattery: 'Minimum battery', dataSent: 'Data sent to Earth',
+  hibernated: 'Hours hibernating',
+  csv: 'Export CSV', share: 'Copy link', copied: 'Link copied',
+  next: 'Next', prev: 'Back', close: 'Close', step: 'Step',
+  footer: 'NASA Space Apps Challenge 2026 · Data: NASA/JPL Horizons, LRO/LOLA, USGS. Times in UTC.',
+};
+
+export const t = (l: Lang): Dict => (l === 'es' ? es : en);

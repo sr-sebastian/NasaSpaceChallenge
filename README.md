@@ -4,20 +4,42 @@
 
 > If I change the site or the date, how much sunlight and communication time do I gain or lose?
 
-Herramienta web (ES/EN) para comparar **dónde y cuándo** aterrizar en el polo sur lunar. Para cada sitio y fecha muestra dónde están el **Sol** (energía) y la **Tierra** (comunicación directa) respecto del horizonte, y cuánto se gana o pierde al cambiar de escenario.
+Herramienta web (ES/EN) para comparar **dónde y cuándo** aterrizar en el polo sur lunar. Para cada sitio y fecha muestra dónde están el **Sol** (energía) y la **Tierra** (comunicación directa) respecto del horizonte **real**, y cuánto se gana o pierde al cambiar de escenario.
 
-## Funcionalidades
-- **Hasta 4 escenarios** (sitio + fecha + estadía de 3 a 28 días), comparados contra un escenario base. Cada uno muestra horas de Sol, de Tierra y de ambos, la noche más larga y el mayor apagón de radio, con su delta y una frase en lenguaje simple.
-- **Ventanas de operación**: líneas de tiempo alineadas desde el aterrizaje, con un cursor horario.
-- **Cielo desde el sitio**: panorama de azimut contra elevación con las trayectorias del Sol y la Tierra sobre el horizonte.
-- **Calendario 2028**: mapa de calor de 9 sitios × 366 días. Un clic elige la fecha.
-- **Ranking** de las 9 regiones para la fecha elegida, **★ Mejor fecha** automática por sitio, **exportación a CSV** y **enlace para compartir**.
-- **Modo docente**: el simulador 3D original («Misión Polo Sur»), que usa un modelo simplificado.
+## Qué hace
+- **Respuesta primero:** al comparar A con B, la diferencia de horas de luz, de contacto, de noche más larga y de tiempo sin contacto aparece arriba, en grande, junto con una frase simple.
+- **Escena 3D del sitio:** 24 × 24 km de terreno real LRO/LOLA, el módulo, el Sol con sombras rasantes y la Tierra con su fase real. Las etiquetas dicen en palabras si cada cuerpo está visible o tapado por el relieve. Tiene una línea de tiempo con reproducción.
+- **Ventanas de operación** de todos los escenarios, alineadas desde el aterrizaje.
+- **Mapa del cielo:** el horizonte de 360° desplegado, con los recorridos del Sol y la Tierra.
+- **Energía del módulo:** simulación de batería y paneles con la luz real del escenario. Responde si el módulo sobrevive la noche más larga.
+- **Calendario de ventanas 2028** (9 sitios × 366 días), **ranking**, **★ mejor fecha**, **exportación a CSV** y **enlace para compartir**.
+- **Recorrido guiado** de 6 pasos para docentes, sobre la misma vista y con los mismos datos.
+- Opción **«Sin relieve»** para mostrar cuánto cambia el resultado según el terreno.
 
-## Datos
-- **NASA/JPL Horizons API** (DE441): azimut y elevación aparentes del Sol (10) y la Tierra (399), sin atmósfera, calculados de forma topocéntrica en la superficie lunar (`coord@301`), cada hora durante 2028. Se regeneran con `node scripts/fetch-horizons.mjs` y quedan en `public/data/ephem-2028.json`.
-- **Sitios**: un punto representativo aproximado dentro de cada una de las 9 regiones candidatas de Artemis III (NASA, 2024). Ver `scripts/regions.mjs`.
-- **Limitación**: el horizonte es geométrico y ajustable. El relieve real de LRO/LOLA es el próximo paso.
+## Datos y pipeline (`scripts/`)
+| Paso | Fuente | Salida |
+|---|---|---|
+| Regiones | Polígonos oficiales de las 9 regiones de Artemis III, USGS (McClernan 2024, [doi:10.5066/P1MEQ6UK](https://doi.org/10.5066/P1MEQ6UK)) | `public/data/artemis3-regions.geojson` |
+| Horizonte real | LRO/LOLA `LDEM_80S_80M` ([PDS](https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/polar/img/)): 720 azimuts, hasta 250 km, con curvatura, observador a 2 m | `public/data/horizons.json` |
+| Punto representativo | Grilla de 1 km dentro de cada región; se elige el punto con más horas de Sol y Tierra a la vez en 2028 | `horizons.json` |
+| Sol y Tierra | NASA/JPL Horizons API (DE441), Az/El topocéntricos sobre la Luna con la altura real del terreno, cada hora de 2028 | `public/data/ephem-2028.json` |
+| Terreno 3D y mapa | Recortes LOLA de 24 km por sitio y relieve sombreado del polo | `public/data/terrain/*.bin`, `south-pole-hillshade.png` |
+
+```bash
+node scripts/fetch-horizons.mjs
+```
+
+```bash
+python3 scripts/lola_horizon.py /ruta/ldem_80s_80m.img
+```
+
+```bash
+node scripts/fetch-horizons.mjs
+```
+
+```bash
+python3 scripts/terrain_tiles.py /ruta/ldem_80s_80m.img
+```
 
 ## Ejecutar
 
@@ -26,5 +48,18 @@ pnpm install
 pnpm dev
 ```
 
+```bash
+pnpm test
+```
+
+## Limitaciones
+- Obstáculos menores a 80 m: no incluidos.
+- Eclipses: no incluidos.
+- Presupuesto de enlace y relés: no incluidos.
+- Energía: el modelo es didáctico.
+- Herramienta educativa y de exploración, no de planificación operacional.
+
 ## Uso de IA
 El código y los textos se desarrollaron con ayuda de asistentes de IA (Claude Code, ChatGPT). Los datos provienen solo de las fuentes citadas.
+
+El simulador 3D anterior («Misión Polo Sur») quedó en la rama `legacy-mision-polo-sur-3d`.

@@ -1,7 +1,0 @@
-import {Cylinder,Box,Sphere} from '@react-three/drei'; import type {Equipment} from '../lib/sim';
-export function Lander({equipment,hibernating,charging}:{equipment:Equipment;hibernating:boolean;charging:boolean}){const mast=equipment.mast;return <group position={[0,3,0]}>
- <Cylinder args={[2.5,3.1,2.5,8]} castShadow><meshStandardMaterial color={hibernating?'#7893a8':'#c8c1ae'} metalness={.65} roughness={.4} emissive={hibernating?'#255a78':'#000'} emissiveIntensity={hibernating?.7:0}/></Cylinder>
- {[-1,1].map(x=><group key={x} position={[x*4,.8,0]} rotation={[0,0,x*.12]}><Box args={[5.5,.18,2.5]} castShadow><meshStandardMaterial color="#163a52" emissive="#174f74" emissiveIntensity={charging?.8:.1} metalness={.4}/></Box>{[-2,-1,0,1,2].map(i=><Box key={i} args={[.04,.19,2.45]} position={[i*1.05,0,0]}><meshBasicMaterial color="#5b7e93"/></Box>)}</group>)}
- <Cylinder args={[.12,.18,2+mast,10]} position={[0,2+mast/2,0]} castShadow><meshStandardMaterial color="#d5d8d8" metalness={.8}/></Cylinder><Sphere args={[.6,18,18]} position={[0,3.2+mast,0]}><meshStandardMaterial color="#d8dde0" metalness={.75}/></Sphere>
- {[[-2,-1.8],[-2,1.8],[2,-1.8],[2,1.8]].map(([x,z],i)=><group key={i}><Cylinder args={[.12,.12,3,8]} position={[x,0,z]} rotation={[0,0,x*.18]}><meshStandardMaterial color="#8e918f" metalness={.7}/></Cylinder><Cylinder args={[.7,.85,.2,12]} position={[x,-1.5,z]}><meshStandardMaterial color="#555"/></Cylinder></group>)}
- </group>}
