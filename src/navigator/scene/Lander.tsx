@@ -29,7 +29,8 @@ function dishGeometry() {
   const g = new THREE.LatheGeometry(pts, 32); g.rotateX(Math.PI / 2); return g; // abre hacia +z
 }
 
-export function Lander({ base, sunDir, earthDir, charging, linked }: { base: number; sunDir: THREE.Vector3; earthDir: THREE.Vector3; charging: boolean; linked: boolean }) {
+/** power: 0 operando · 1 hibernando · 2 sin energía (ver energy.ts) */
+export function Lander({ base, sunDir, earthDir, charging, linked, power }: { base: number; sunDir: THREE.Vector3; earthDir: THREE.Vector3; charging: boolean; linked: boolean; power: number }) {
   const tex = useMemo(() => ({ mli: mliTexture(), cells: cellTexture(), dish: dishGeometry() }), []);
   const wings = useRef<THREE.Group>(null), hga = useRef<THREE.Group>(null), led = useRef<THREE.MeshStandardMaterial>(null);
   const sunH = useMemo(() => new THREE.Vector3(sunDir.x, 0, sunDir.z).normalize(), [sunDir]);
@@ -37,7 +38,11 @@ export function Lander({ base, sunDir, earthDir, charging, linked }: { base: num
     // los paneles giran suavemente hacia el azimut del Sol; la antena apunta a la Tierra
     if (wings.current) { const target = Math.atan2(sunH.x, sunH.z); const cur = wings.current.rotation.y; let d = target - cur; d = Math.atan2(Math.sin(d), Math.cos(d)); wings.current.rotation.y = cur + d * Math.min(1, dt * 3); }
     if (hga.current) { const p = hga.current.getWorldPosition(new THREE.Vector3()); hga.current.lookAt(p.add(earthDir)); }
-    if (led.current) led.current.emissiveIntensity = linked ? 1.5 + Math.sin(clock.elapsedTime * 4) * 1.2 : 0.2;
+    if (led.current) {
+      // verde: operando (parpadea si hay enlace) · ámbar con pulso lento: hibernando · apagado: sin energía
+      const t = clock.elapsedTime; led.current.emissive.set(power === 1 ? '#ffb340' : '#5dff9c');
+      led.current.emissiveIntensity = power === 2 ? 0 : power === 1 ? 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(t * 1.2)) : linked ? 1.5 + Math.sin(t * 4) * 1.2 : 0.9;
+    }
   });
   const metal = <meshStandardMaterial color="#9aa0a6" metalness={0.75} roughness={0.38} />;
   const legs = [0, 1, 2, 3].map(i => (i * Math.PI) / 2 + Math.PI / 4);
@@ -62,7 +67,7 @@ export function Lander({ base, sunDir, earthDir, charging, linked }: { base: num
       <mesh position={[0, 3.3, 0]} castShadow><cylinderGeometry args={[0.07, 0.07, 1.2, 10]} />{metal}</mesh>
       <group ref={wings} position={[0, 3.4, 0]}>
         <mesh castShadow><boxGeometry args={[4.6, 0.06, 0.06]} />{metal}</mesh>
-        {[-1, 1].map(s => <mesh key={s} position={[s * 1.55, 0.25, 0.04]} castShadow><planeGeometry args={[1.3, 1.95]} /><meshStandardMaterial map={tex.cells} metalness={0.35} roughness={0.28} emissive="#1d3e78" emissiveIntensity={charging ? 0.25 : 0} side={THREE.DoubleSide} /></mesh>)}
+        {[-1, 1].map(s => <mesh key={s} position={[s * 1.55, 0.25, 0.04]} castShadow><planeGeometry args={[1.3, 1.95]} /><meshStandardMaterial map={tex.cells} metalness={0.35} roughness={0.28} emissive="#1d3e78" emissiveIntensity={charging && power !== 2 ? 0.25 : 0} side={THREE.DoubleSide} /></mesh>)}
       </group>
       {/* antena de alta ganancia apuntando a la Tierra */}
       <mesh position={[0.75, 3.0, -0.6]} castShadow><cylinderGeometry args={[0.05, 0.05, 0.5, 8]} />{metal}</mesh>

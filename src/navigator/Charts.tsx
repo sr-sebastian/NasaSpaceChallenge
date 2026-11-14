@@ -107,18 +107,26 @@ export function Heatmap({ data, p, onPick, activeSite, activeDay }: { data: { id
   );
 }
 
-/** Nivel de batería durante la estadía. */
-export function BatteryChart({ battery, hib, sun, cursor, diedAt }: { battery: Float32Array; hib: Uint8Array; sun: Uint8Array; cursor: number; diedAt: number }) {
+/** Nivel de batería durante la estadía, con franjas de estado (hibernando / sin energía) y las horas con Sol de fondo. */
+export function BatteryChart({ battery, state, sun, cursor, onSeek }: { battery: Float32Array; state: Uint8Array; sun: Uint8Array; cursor: number; onSeek: (h: number) => void }) {
   const W = 1000, H = 120, n = battery.length, sx = W / n;
   let d = ''; for (let i = 0; i < n; i++) d += `${i ? 'L' : 'M'}${(i * sx).toFixed(1)},${(H - battery[i] * H).toFixed(1)}`;
+  const band = (k: number) => { const a = new Uint8Array(n); for (let i = 0; i < n; i++) a[i] = state[i] === k ? 1 : 0; return runs(a); };
+  const days = n / 24; const step = days > 14 ? 7 : days > 7 ? 2 : 1; const ticks: number[] = []; for (let t = 0; t <= days; t += step) ticks.push(t);
   return (
-    <svg viewBox={`0 0 ${W} ${H + 4}`} preserveAspectRatio="none" className="bat">
-      {runs(sun).map(([s, l]) => <rect key={s} x={s * sx} width={l * sx} height={H} className="bat-sun" />)}
-      {runs(hib).map(([s, l]) => <rect key={'h' + s} x={s * sx} width={l * sx} y={H - 4} height={4} className="bat-hib" />)}
-      <line x1={0} x2={W} y1={H * 0.75} y2={H * 0.75} className="bat-25" />
-      <path d={`${d}L${W},${H}L0,${H}Z`} className="bat-area" /><path d={d} className="bat-line" />
-      {diedAt >= 0 && <line x1={diedAt * sx} x2={diedAt * sx} y1={0} y2={H} className="bat-dead" />}
-      <line x1={(cursor + 0.5) * sx} x2={(cursor + 0.5) * sx} y1={0} y2={H} className="tl-cursor" />
-    </svg>
+    <div className="bat-wrap">
+      <div className="bat-y mono"><span>100 %</span><span>50 %</span><span>0 %</span></div>
+      <div className="bat-plot">
+        <svg viewBox={`0 0 ${W} ${H + 14}`} preserveAspectRatio="none" className="bat" onPointerDown={ev => { const b = ev.currentTarget.getBoundingClientRect(); onSeek(Math.max(0, Math.min(n - 1, Math.floor(((ev.clientX - b.left) / b.width) * n)))); }}>
+          {runs(sun).map(([s0, l]) => <rect key={s0} x={s0 * sx} width={l * sx} height={H} className="bat-sun" />)}
+          {[0.25, 0.5, 0.75].map(v => <line key={v} x1={0} x2={W} y1={H * v} y2={H * v} className={v === 0.75 ? 'bat-25' : 'bat-grid'} />)}
+          <path d={`${d}L${W},${H}L0,${H}Z`} className="bat-area" /><path d={d} className="bat-line" />
+          {band(1).map(([s0, l]) => <rect key={'h' + s0} x={s0 * sx} width={l * sx} y={H + 4} height={9} rx={2} className="bat-hib" />)}
+          {band(2).map(([s0, l]) => <rect key={'o' + s0} x={s0 * sx} width={l * sx} y={H + 4} height={9} rx={2} className="bat-off" />)}
+          <line x1={(cursor + 0.5) * sx} x2={(cursor + 0.5) * sx} y1={0} y2={H + 14} className="tl-cursor" />
+        </svg>
+        <div className="tl-ticks">{ticks.map(t => <span key={t} style={{ left: `${(t / days) * 100}%` }}>{t}d</span>)}</div>
+      </div>
+    </div>
   );
 }

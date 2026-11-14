@@ -61,13 +61,15 @@ La comparación muestra la diferencia de cada métrica entre el escenario elegid
 
 ## 5. Modelo de energía
 
-Es un modelo didáctico para comparar sitios, no para dimensionar un módulo real:
+Es un modelo didáctico para comparar sitios, no para dimensionar un módulo real. Cada hora el módulo está en uno de tres estados:
 
-- Paneles verticales que siguen al Sol en azimut. En el polo, el Sol está siempre a pocos grados de altura, así que un panel vertical recibe casi toda la luz. Entregan su potencia nominal cuando el Sol está visible.
-- Consumo constante en operación (150, 250 o 400 W) y 80 W en hibernación, que corresponden a los calefactores de supervivencia.
-- Hibernación automática cuando no hay Sol y la batería baja del 25 %.
-- La batería empieza al 90 %.
-- Datos: 40 MB por hora en operación, enviados a 200 MB por hora mientras hay línea de vista con la Tierra.
+- **Operando:** consume la carga nominal (150, 250 o 400 W), genera 40 MB/h de datos y los envía a 200 MB/h si ve la Tierra.
+- **Hibernando:** cuando no hay Sol y la batería baja del 25 %, apaga instrumentos y radio y deja solo los calefactores de supervivencia (80 W). Sale de la hibernación cuando vuelve el Sol, o con un 40 % de carga.
+- **Sin energía:** si la batería llega a 0 se apaga del todo. Cuando el Sol la recarga hasta el 15 % se reinicia. La estadía cuenta como fallida aunque después se recupere.
+
+Los paneles son verticales y siguen al Sol en azimut. En el polo el Sol está siempre a pocos grados de altura, así que un panel vertical recibe casi toda la luz y entrega su potencia nominal mientras el Sol está visible. La batería empieza al 90 %.
+
+La app registra cada cambio (entra en sombra, hiberna, se apaga, se reinicia) en una bitácora, y el módulo de la escena 3D muestra el estado de la hora actual.
 
 ## 6. Validación
 

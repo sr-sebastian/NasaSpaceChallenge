@@ -14,7 +14,7 @@ The Navigator compares landing scenarios at the nine Artemis III candidate regio
 - **3D view of the site.** 24 × 24 km of LRO/LOLA terrain with no vertical exaggeration, a lander whose solar wings track the Sun and whose antenna points at Earth, grazing shadows, and Earth with its real phase. Markers say in words whether the Sun and Earth are visible or hidden behind terrain; a compass tape and edge arrows show where to look.
 - **Operating windows.** Hour-by-hour Sun and Earth visibility for every scenario, aligned from touchdown, with playback.
 - **Sky map.** The full 360° horizon unrolled, with the Sun and Earth tracks over the stay.
-- **Lander power.** A battery and solar panel model fed by the real lighting answers whether the lander survives the longest night.
+- **Lander power.** A battery and solar panel model fed by the real lighting. The lander operates, hibernates (instruments off, heaters only) when the battery drops below 25 % in the dark, or shuts down and reboots when the Sun recharges it. An event log tells that story hour by hour, and the 3D lander shows its state.
 - **2028 window calendar.** Nine sites × 366 landing days, a ranking for the chosen date, a best-date finder, CSV export and shareable links.
 - **Guided tour** for classrooms, built on the same view and the same data.
 - Spanish and English.

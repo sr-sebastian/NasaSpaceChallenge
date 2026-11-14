@@ -81,6 +81,10 @@ export function Navigator() {
   }, [e, act.date, dur, terrain, prio]);
   const am = ms[Math.min(active, ms.length - 1)];
   const energy = useMemo(() => (am ? runEnergy(am.sun, am.earth, eq) : null), [am, eq]);
+  const power = energy ? energy.state[Math.min(cursor, energy.state.length - 1)] : 0;
+  const powerPct = energy ? Math.round(energy.battery[Math.min(cursor, energy.battery.length - 1)] * 100) : 100;
+  const stName = (k: number) => (k === 1 ? L.stHib : k === 2 ? L.stOff : L.stOn);
+  const stamp = (h: number) => `${L.day} ${Math.floor(h / 24) + 1} · ${String((dateToHour(act.date) + h) % 24).padStart(2, '0')}:00`;
 
   const bodies = useMemo(() => {
     if (!e) return null; const s = e.sites.find(x => x.id === act.site)!; const h = Math.min(dateToHour(act.date) + cursor, HOURS - 1);
@@ -108,9 +112,9 @@ export function Navigator() {
         <div className="brand"><svg viewBox="0 0 40 40" aria-hidden className="brand-mark"><circle cx="20" cy="20" r="17" className="bm-disc" /><path d="M3.5 24 L10 19.5 L14 22 L19 16.5 L24 21 L28 18.5 L36.5 24" className="bm-ridge" /><circle cx="29" cy="11" r="3.2" className="bm-sun" /></svg>
           <div><b>{L.title}</b><small>{L.tagline}</small></div></div>
         <nav>
-          <button className="btn" onClick={() => goStep(0)} disabled={!e}><Icon name="guide" />{L.tour}</button>
-          <button className="btn" onClick={() => setMethod(true)}><Icon name="info" />{L.method}</button>
-          <div className="seg" role="group" aria-label="Idioma / Language">{(['es', 'en'] as Lang[]).map(l => <button key={l} aria-pressed={lang === l} onClick={() => setLang(l)}>{l.toUpperCase()}</button>)}</div>
+          <button className="btn quiet" onClick={() => goStep(0)} disabled={!e}><Icon name="guide" />{L.tour}</button>
+          <button className="btn quiet" onClick={() => setMethod(true)}><Icon name="info" />{L.method}</button>
+          <div className="seg lang" role="group" aria-label="Idioma / Language">{(['es', 'en'] as Lang[]).map(l => <button key={l} aria-pressed={lang === l} onClick={() => setLang(l)}>{l.toUpperCase()}</button>)}</div>
         </nav>
       </header>
 
@@ -127,13 +131,14 @@ export function Navigator() {
                 <input id={`date-${i}`} type="date" min="2028-01-01" max={maxDate} value={s.date} onChange={ev => ev.target.value && upd(i, { date: ev.target.value })} onClick={ev => { try { (ev.currentTarget as HTMLInputElement).showPicker(); } catch { /* sin showPicker */ } }} aria-label={L.date} />
               </label>
               <button className="ibtn" title={L.bestHint} aria-label={L.best} onClick={ev => { ev.stopPropagation(); if (e) upd(i, { date: hourToDate(bestStart(e, s.site, dur, terrain, prio)) }); }}><Icon name="star" size={16} /></button>
+              {i === 0 && scen.length > 1 && <span className="chip-tag">{L.base}</span>}
               {scen.length > 1 && <button className="ibtn" title={L.remove} aria-label={L.remove} onClick={ev => { ev.stopPropagation(); setScen(sc => sc.filter((_, j) => j !== i)); setActive(0); }}><Icon name="close" size={15} /></button>}
             </div>
           ))}
           {scen.length < 4 && <button className="chip add" onClick={() => { setScen(s => [...s, { ...s[s.length - 1] }]); setActive(scen.length); }}><Icon name="plus" size={15} />{L.add}</button>}
           <div className="scen-opts">
-            <label>{L.stay}<span className="sel"><select value={days} onChange={ev => setDays(+ev.target.value)}>{[3, 6, 7, 14, 28].map(d => <option key={d} value={d}>{d} {L.days}</option>)}</select><Icon name="chevron" size={14} /></span></label>
-            <label title={L.terrainHint}>{L.terrain}<span className="sel"><select value={terrain} onChange={ev => setTerrain(ev.target.value as Terrain)}><option value="lola">{L.terrainLola}</option><option value="flat">{L.terrainFlat}</option></select><Icon name="chevron" size={14} /></span></label>
+            <label>{L.stay}<span className="sel inline"><select value={days} onChange={ev => setDays(+ev.target.value)}>{[3, 6, 7, 14, 28].map(d => <option key={d} value={d}>{d} {L.days}</option>)}</select><Icon name="chevron" size={14} /></span></label>
+            <label title={L.terrainHint}>{L.terrain}<span className="sel inline"><select value={terrain} onChange={ev => setTerrain(ev.target.value as Terrain)}><option value="lola">{L.terrainLola}</option><option value="flat">{L.terrainFlat}</option></select><Icon name="chevron" size={14} /></span></label>
           </div>
         </div>
 
@@ -160,13 +165,14 @@ export function Navigator() {
               <div className="viewport">
                 <Suspense fallback={<div className="loading">{L.loading}</div>}>
                   <SiteScene flat={terrain === 'flat'} heights={terrain === 'flat' ? null : tile} size={241} step={100} mask={sceneMask} sun={bodies.sun} earth={bodies.earth}
-                    preset={preset} presetNonce={nonce} onUserMove={() => setPreset('free')} onReset={() => look(preset === 'free' ? 'sun' : preset)} onFocusLander={() => look('lander')}
+                    preset={preset} presetNonce={nonce} onUserMove={() => setPreset('free')} onReset={() => look(preset === 'free' ? 'sun' : preset)} onFocusLander={() => look('lander')} power={power}
                     labels={{ sun: L.sun, earth: L.earth, lander: L.lander, above: L.aboveH, hidden: L.hidden, link: L.linkOn, noLink: L.linkOff, light: L.lightOn, dark: L.lightOff, compass: L.compass, zoomIn: L.zoomIn, zoomOut: L.zoomOut, resetView: L.resetView, wheelHint: L.wheelHint, touchHint: L.touchHint }} />
                 </Suspense>
                 <div className="hud-tl">
                   <small>{L.standing}</small>
                   <b style={{ color: COLORS[active] }}>{letter(active)} · {REGIONS.find(r => r.id === act.site)!.name}</b>
                   <span className="mono">{L.day} {Math.floor(cursor / 24) + 1} · {bodies.stamp}</span>
+                  <span className={`pw pw-${power}`}><i />{L.lander2}: {stName(power)} · {powerPct} %</span>
                 </div>
                 <div className="hud-tr">
                   {(['lander', 'sun', 'earth', 'aerial'] as const).map(p => <button key={p} aria-pressed={preset === p} onClick={() => look(p)}><Icon name={p} size={15} />{p === 'lander' ? L.viewLander : p === 'sun' ? L.viewSun : p === 'earth' ? L.viewEarth : L.viewAerial}</button>)}
@@ -222,9 +228,16 @@ export function Navigator() {
                 <label>{L.load}<span className="sel"><select value={eq.loadW} onChange={ev => setEq({ ...eq, loadW: +ev.target.value })}>{[150, 250, 400].map(v => <option key={v} value={v}>{v} W</option>)}</select><Icon name="chevron" size={14} /></span></label>
                 <label className="chk"><input type="checkbox" checked={eq.autoHibernate} onChange={ev => setEq({ ...eq, autoHibernate: ev.target.checked })} />{L.hibernate}</label>
               </div>
-              <p className={`verdict-pill ${energy.survived ? 'ok' : 'ko'}`}><Icon name={energy.survived ? 'check' : 'alert'} size={15} />{energy.survived ? L.survived : L.died(energy.diedAt)}</p>
-              <BatteryChart battery={energy.battery} hib={energy.hibernating} sun={am.sun} cursor={cursor} diedAt={energy.diedAt} />
-              <dl className="kv"><div><dt>{L.minBattery}</dt><dd>{Math.round(energy.minPct)} %</dd></div><div><dt>{L.hibernated}</dt><dd>{energy.hibernatedH} {L.h}</dd></div><div><dt>{L.dataSent}</dt><dd>{(energy.sentMB / 1000).toFixed(1)} GB</dd></div></dl>
+              <p className={`verdict-pill ${energy.survived ? 'ok' : 'ko'}`}><Icon name={energy.survived ? 'check' : 'alert'} size={15} />{energy.survived ? (energy.hibernatedH ? L.survivedHib(energy.hibernatedH) : L.survived) : L.diedFull(energy.offAt, energy.offH)}</p>
+              <BatteryChart battery={energy.battery} state={energy.state} sun={am.sun} cursor={cursor} onSeek={h => { setPlaying(false); setCursor(h); }} />
+              <div className="bat-legend"><span><i className="lg-line" />{L.legendBattery}</span><span><i className="lg-sun" />{L.legendSun}</span><span><i className="lg-hib" />{L.legendHib}</span><span><i className="lg-off" />{L.legendOff}</span></div>
+              <dl className="kv"><div><dt>{L.minBattery}</dt><dd>{Math.round(energy.minPct)} %</dd></div><div><dt>{L.hibernated}</dt><dd>{energy.hibernatedH} {L.h}</dd></div><div><dt>{L.offHours}</dt><dd>{energy.offH} {L.h}</dd></div><div><dt>{L.dataSent}</dt><dd>{(energy.sentMB / 1000).toFixed(1)} GB</dd></div></dl>
+              {(() => { const ev = energy.events.filter(x => x.kind !== 'sunrise' && x.kind !== 'shadow' || energy.events.length < 10); const shown = ev.slice(0, 7); return ev.length > 0 && <>
+                <h3>{L.logTitle}</h3>
+                <ol className="log">{shown.map((x, i) => <li key={i} className={`ev-${x.kind} ${cursor >= x.h && (shown[i + 1]?.h ?? Infinity) > cursor ? 'now' : ''}`}><button onClick={() => { setPlaying(false); setCursor(x.h); }}><span className="mono log-t">{stamp(x.h)}</span><span className="log-x">{L.ev[x.kind]}</span><span className="mono log-p">{L.batteryAt(x.pct)}</span></button></li>)}</ol>
+                {ev.length > shown.length && <p className="hint">{L.evMore(ev.length - shown.length)}</p>}
+                {energy.hibernatedH > 0 && <p className="hint">{L.hibernateHint}</p>}
+              </>; })()}
             </section>}
           </section>
 

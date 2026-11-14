@@ -166,9 +166,9 @@ function Overlay({ markers, tape, sunAz, earthAz }: { markers: Marker[]; tape: R
   return null;
 }
 
-export function SiteScene({ heights, size, step, mask, sun, earth, labels, preset, presetNonce, onUserMove, onReset, onFocusLander, flat }: {
+export function SiteScene({ heights, size, step, mask, sun, earth, labels, preset, presetNonce, onUserMove, onReset, onFocusLander, flat, power = 0 }: {
   heights: Int16Array | null; size: number; step: number; mask: Int16Array; sun: Body; earth: Body; labels: SceneLabels;
-  preset: CameraPreset; presetNonce: number; onUserMove: () => void; onReset: () => void; onFocusLander: () => void; flat: boolean;
+  preset: CameraPreset; presetNonce: number; onUserMove: () => void; onReset: () => void; onFocusLander: () => void; flat: boolean; power?: number;
 }) {
   const api = useRef<ViewApi | null>(null);
   const [hint, setHint] = useState<'wheel' | 'touch' | null>(null); const hintT = useRef(0);
@@ -186,7 +186,7 @@ export function SiteScene({ heights, size, step, mask, sun, earth, labels, prese
   const sunPos = useMemo(() => sunDir.clone().multiplyScalar(SUN_R), [sunDir]), earthPos = useMemo(() => earthDir.clone().multiplyScalar(EARTH_R), [earthDir]);
   const sunRef = useRef<HTMLDivElement>(null), earthRef = useRef<HTMLDivElement>(null), pinRef = useRef<HTMLDivElement>(null), tapeRef = useRef<HTMLDivElement>(null);
   const markers = useMemo<Marker[]>(() => [{ pos: sunPos, el: sunRef, edge: true }, { pos: earthPos, el: earthRef, edge: true }, { pos: new THREE.Vector3(0, LANDER_BASE + 5.2, 0), el: pinRef, edge: false }], [sunPos, earthPos]);
-  const fmt = (b: Body) => `${b.el >= 0 ? '+' : '−'}${Math.abs(b.el).toFixed(1)}°`;
+  const fmt = (b: Body) => { const v = Math.abs(b.el) < 0.05 ? 0 : b.el; return `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v).toFixed(1)}°`; };
   const ready = flat || !!heights;
   const ticks = useMemo(() => Array.from({ length: 72 }, (_, i) => i * 15 - 360), []);
   return (
@@ -194,14 +194,14 @@ export function SiteScene({ heights, size, step, mask, sun, earth, labels, prese
       <Canvas shadows camera={{ position: [-20, 5, 14], fov: 55, near: 0.3, far: 200000 }} gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping }} dpr={[1, 1.75]}>
         <color attach="background" args={['#020304']} />
         <Stars radius={150000} depth={20000} count={2500} factor={2600} saturation={0} fade={false} speed={0} />
-        <ambientLight intensity={0.035} color="#9db4d0" />
+        <ambientLight intensity={0.06} color="#9db4d0" />
         {/* luz de Tierra: la Tierra iluminada refleja algo de luz azulada cuando está sobre el horizonte */}
         <directionalLight position={earthPos} intensity={earthUp ? 0.1 : 0} color="#8fb8ff" />
         <SunLight dir={sunDir} intensity={2.6 * frac} />
         {flat ? <FlatGround /> : heights && <Terrain heights={heights} size={size} step={step} />}
         {ready && <NearField heights={flat ? null : heights} size={size} step={step} flat={flat} />}
         <HorizonRing mask={mask} />
-        <Lander base={LANDER_BASE} sunDir={sunDir} earthDir={earthDir} charging={frac > 0} linked={earthUp} />
+        <Lander base={LANDER_BASE} sunDir={sunDir} earthDir={earthDir} charging={frac > 0} linked={earthUp} power={power} />
         <Sun pos={sunPos} frac={frac} />
         <Earth pos={earthPos} sunDir={sunDir} />
         <OrbitControls makeDefault enableDamping dampingFactor={0.09} rotateSpeed={0.42} enableZoom={false} enablePan={false} target={[0, 4, 0]} minDistance={6} maxDistance={30000} maxPolarAngle={Math.PI * 0.5} onStart={onUserMove} />
