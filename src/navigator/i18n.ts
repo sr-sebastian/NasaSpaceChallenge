@@ -15,9 +15,10 @@ const es = {
     return `${part(sun, 'luz').replace(/^./, c => c.toUpperCase())} y ${part(earth, 'comunicación')}.`;
   },
   // escena
+  compass: ['N', 'E', 'S', 'O'],
   standing: 'Estás parado en', viewSun: 'Mirar al Sol', viewEarth: 'Mirar a la Tierra', viewAerial: 'Vista aérea',
   sceneHint: 'Arrastrá para mirar alrededor · rueda para acercar', lander: 'Tu módulo', sizeNote: 'Sol y Tierra dibujados 3× más grandes. Relieve real LRO/LOLA, sin exagerar.',
-  aboveH: (d: string) => `${d} sobre el horizonte`, hidden: 'tapado por el relieve', lightOn: 'paneles cargando', lightOff: 'en sombra',
+  aboveH: (d: string) => `${d} sobre el horizonte`, hidden: 'oculto tras el relieve', lightOn: 'paneles cargando', lightOff: 'en sombra',
   linkOn: 'enlace directo', linkOff: 'sin línea de vista',
   day: 'Día', play: 'Reproducir', pause: 'Pausar', speed: 'Velocidad', since: 'desde el aterrizaje',
   terrain: 'Horizonte', terrainLola: 'Relieve real (LOLA)', terrainFlat: 'Sin relieve (0°)', terrainHint: 'Compará con un horizonte plano para ver cuánto importan las montañas',
@@ -52,9 +53,10 @@ const en: Dict = {
     const part = (v: number, what: string) => (v === 0 ? `the same ${what} time` : `${v > 0 ? 'gain' : 'lose'} ${Math.abs(v)} h of ${what}`);
     return `You ${part(sun, 'sunlight')} and ${part(earth, 'communication')}.`;
   },
+  compass: ['N', 'E', 'S', 'W'],
   standing: 'You are standing at', viewSun: 'Look at the Sun', viewEarth: 'Look at Earth', viewAerial: 'Aerial view',
   sceneHint: 'Drag to look around · scroll to zoom', lander: 'Your lander', sizeNote: 'Sun and Earth drawn 3× larger. Real LRO/LOLA terrain, no exaggeration.',
-  aboveH: (d: string) => `${d} above the horizon`, hidden: 'blocked by terrain', lightOn: 'panels charging', lightOff: 'in shadow',
+  aboveH: (d: string) => `${d} above the horizon`, hidden: 'hidden behind terrain', lightOn: 'panels charging', lightOff: 'in shadow',
   linkOn: 'direct link', linkOff: 'no line of sight',
   day: 'Day', play: 'Play', pause: 'Pause', speed: 'Speed', since: 'since landing',
   terrain: 'Horizon', terrainLola: 'Real terrain (LOLA)', terrainFlat: 'No terrain (0°)', terrainHint: 'Compare with a flat horizon to see how much the mountains matter',

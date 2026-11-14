@@ -121,8 +121,10 @@ export function Navigator() {
               <span className="chip-l">{letter(i)}{i === 0 && <em>{L.base}</em>}</span>
               <label className="sr" htmlFor={`site-${i}`}>{L.site}</label>
               <select id={`site-${i}`} value={s.site} onChange={ev => upd(i, { site: ev.target.value })}>{REGIONS.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}</select>
-              <label className="sr" htmlFor={`date-${i}`}>{L.date}</label>
-              <input id={`date-${i}`} type="date" min="2028-01-01" max={maxDate} value={s.date} onChange={ev => ev.target.value && upd(i, { date: ev.target.value })} title={L.date} />
+              <label className="date-btn" htmlFor={`date-${i}`} title={L.date}>
+                <span className="mono">{fmtDate(s.date, lang)}</span>
+                <input id={`date-${i}`} type="date" min="2028-01-01" max={maxDate} value={s.date} onChange={ev => ev.target.value && upd(i, { date: ev.target.value })} onClick={ev => { try { (ev.currentTarget as HTMLInputElement).showPicker(); } catch { /* sin showPicker */ } }} aria-label={L.date} />
+              </label>
               <button className="icon" title={L.bestHint} aria-label={L.best} onClick={ev => { ev.stopPropagation(); if (e) upd(i, { date: hourToDate(bestStart(e, s.site, dur, terrain, prio)) }); }}>★</button>
               {scen.length > 1 && <button className="icon" aria-label={L.remove} onClick={ev => { ev.stopPropagation(); setScen(sc => sc.filter((_, j) => j !== i)); setActive(0); }}>×</button>}
             </div>
@@ -156,9 +158,9 @@ export function Navigator() {
             <section className="stage">
               <div className="viewport">
                 <Suspense fallback={<div className="loading">{L.loading}</div>}>
-                  <SiteScene heights={terrain === 'flat' ? null : tile} size={241} step={100} mask={sceneMask} sun={bodies.sun} earth={bodies.earth}
+                  <SiteScene flat={terrain === 'flat'} heights={terrain === 'flat' ? null : tile} size={241} step={100} mask={sceneMask} sun={bodies.sun} earth={bodies.earth}
                     preset={preset} presetNonce={nonce} onUserMove={() => setPreset('free')}
-                    labels={{ sun: L.sun, earth: L.earth, lander: L.lander, above: L.aboveH, hidden: L.hidden, link: L.linkOn, noLink: L.linkOff, light: L.lightOn, dark: L.lightOff }} />
+                    labels={{ sun: L.sun, earth: L.earth, lander: L.lander, above: L.aboveH, hidden: L.hidden, link: L.linkOn, noLink: L.linkOff, light: L.lightOn, dark: L.lightOff, compass: L.compass }} />
                 </Suspense>
                 <div className="hud-tl">
                   <small>{L.standing}</small>
@@ -241,7 +243,7 @@ export function Navigator() {
 
       {tour !== null && e && (
         <div className="tour" role="dialog" aria-label={L.tour}>
-          <span className="tour-step mono">{L.step} {tour + 1}/{TOUR.length}</span>
+          <div className="tour-prog" aria-label={`${L.step} ${tour + 1}/${TOUR.length}`}>{TOUR.map((_, i) => <i key={i} className={i <= tour ? 'on' : ''} />)}</div>
           <h3>{TOUR[tour].title[lang]}</h3>
           <p>{TOUR[tour].body[lang]}</p>
           <div className="tour-btns">

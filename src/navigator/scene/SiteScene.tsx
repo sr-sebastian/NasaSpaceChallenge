@@ -1,10 +1,12 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Html, OrbitControls, Stars } from '@react-three/drei';
+import { OrbitControls, Stars } from '@react-three/drei';
 import { Bloom, EffectComposer, Vignette } from '@react-three/postprocessing';
 import { useEffect, useMemo, useRef } from 'react';
 import type React from 'react';
-
 import * as THREE from 'three';
+import { FlatGround, LANDER_BASE, NearField, Terrain } from './ground';
+import { Lander } from './Lander';
+
 type OrbitImpl = { target: THREE.Vector3; update: () => void };
 
 /* Marco local del sitio: x = este, y = arriba, z = sur (el norte es −z). Unidades: metros. */
@@ -15,26 +17,10 @@ export const dirFromAzEl = (az: number, el: number) => {
 
 export interface Body { az: number; el: number; horizon: number }
 export type CameraPreset = 'sun' | 'earth' | 'aerial' | 'free';
-export interface SceneLabels { sun: string; earth: string; lander: string; above: (d: string) => string; hidden: string; link: string; noLink: string; light: string; dark: string }
+export interface SceneLabels { sun: string; earth: string; lander: string; above: (d: string) => string; hidden: string; link: string; noLink: string; light: string; dark: string; compass: string[] }
 
 const SIZE_EXAG = 3;               // Sol y Tierra dibujados 3 veces más grandes que su tamaño angular real
 const RING_R = 30000, SUN_R = 60000, EARTH_R = 50000;
-
-function Terrain({ heights, size, step }: { heights: Int16Array; size: number; step: number }) {
-  const geo = useMemo(() => {
-    const w = (size - 1) * step; const g = new THREE.PlaneGeometry(w, w, size - 1, size - 1); g.rotateX(-Math.PI / 2);
-    const p = g.attributes.position as THREE.BufferAttribute;
-    for (let i = 0; i < p.count; i++) p.setY(i, heights[i]);
-    g.computeVertexNormals();
-    // Color por pendiente: laderas empinadas más oscuras, planicies con regolito más claro
-    const n = g.attributes.normal as THREE.BufferAttribute; const col = new Float32Array(p.count * 3);
-    for (let i = 0; i < p.count; i++) { const k = 0.6 + 0.4 * Math.pow(n.getY(i), 3); col[i * 3] = 0.46 * k; col[i * 3 + 1] = 0.44 * k; col[i * 3 + 2] = 0.41 * k; }
-    g.setAttribute('color', new THREE.BufferAttribute(col, 3));
-    return g;
-  }, [heights, size, step]);
-  useEffect(() => () => geo.dispose(), [geo]);
-  return <mesh geometry={geo} castShadow receiveShadow><meshStandardMaterial vertexColors roughness={1} metalness={0} /></mesh>;
-}
 
 /** Anillo lejano cuya silueta es exactamente la máscara de horizonte LOLA (hasta 250 km). */
 function HorizonRing({ mask }: { mask: Int16Array }) {
@@ -49,7 +35,7 @@ function HorizonRing({ mask }: { mask: Int16Array }) {
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals(); return g;
   }, [mask]);
   useEffect(() => () => geo.dispose(), [geo]);
-  return <mesh geometry={geo}><meshStandardMaterial color="#4a4743" roughness={1} side={THREE.DoubleSide} /></mesh>;
+  return <mesh geometry={geo}><meshStandardMaterial color="#2e2c29" roughness={1} side={THREE.DoubleSide} /></mesh>;
 }
 
 function earthTexture() {
@@ -67,7 +53,7 @@ function Earth({ pos, sunDir }: { pos: THREE.Vector3; sunDir: THREE.Vector3 }) {
   const mat = useMemo(() => new THREE.ShaderMaterial({
     uniforms: { map: { value: earthTexture() }, sunDir: { value: new THREE.Vector3() } },
     vertexShader: 'varying vec2 vUv; varying vec3 vN; void main(){ vUv=uv; vN=normalize(mat3(modelMatrix)*normal); gl_Position=projectionMatrix*viewMatrix*modelMatrix*vec4(position,1.0);} ',
-    fragmentShader: 'uniform sampler2D map; uniform vec3 sunDir; varying vec2 vUv; varying vec3 vN; void main(){ vec3 c=texture2D(map,vUv).rgb; float l=max(dot(normalize(vN),normalize(sunDir)),0.0); float rim=pow(1.0-abs(vN.z),3.0); gl_FragColor=vec4(c*(0.04+1.6*l)+vec3(0.25,0.5,1.0)*rim*0.25*l,1.0);} ',
+    fragmentShader: 'uniform sampler2D map; uniform vec3 sunDir; varying vec2 vUv; varying vec3 vN; void main(){ vec3 c=texture2D(map,vUv).rgb; float l=max(dot(normalize(vN),normalize(sunDir)),0.0); gl_FragColor=vec4(c*(0.035+1.5*l),1.0);} ',
   }), []);
   useEffect(() => { mat.uniforms.sunDir.value.copy(sunDir); }, [mat, sunDir]);
   const r = EARTH_R * Math.tan(THREE.MathUtils.degToRad(0.95)) * SIZE_EXAG;
@@ -78,29 +64,30 @@ function Sun({ pos, frac }: { pos: THREE.Vector3; frac: number }) {
   const r = SUN_R * Math.tan(THREE.MathUtils.degToRad(0.2665)) * SIZE_EXAG;
   const glow = useMemo(() => {
     const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d')!;
-    const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64); gr.addColorStop(0, 'rgba(255,236,200,1)'); gr.addColorStop(0.2, 'rgba(255,200,120,0.55)'); gr.addColorStop(1, 'rgba(255,170,80,0)');
+    const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64); gr.addColorStop(0, 'rgba(255,236,200,1)'); gr.addColorStop(0.18, 'rgba(255,205,130,0.5)'); gr.addColorStop(1, 'rgba(255,170,80,0)');
     g.fillStyle = gr; g.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c);
   }, []);
   return <group position={pos}>
     <mesh><sphereGeometry args={[r, 32, 16]} /><meshBasicMaterial color={new THREE.Color(6, 5.2, 4)} toneMapped={false} /></mesh>
-    <sprite scale={[r * 10, r * 10, 1]}><spriteMaterial map={glow} transparent opacity={0.35 + 0.5 * frac} depthWrite={false} blending={THREE.AdditiveBlending} /></sprite>
+    <sprite scale={[r * 9, r * 9, 1]}><spriteMaterial map={glow} transparent opacity={0.25 + 0.45 * frac} depthWrite={false} blending={THREE.AdditiveBlending} /></sprite>
   </group>;
 }
 
-function Lander({ charging, linked }: { charging: boolean; linked: boolean }) {
-  const dish = useRef<THREE.Mesh>(null);
-  useFrame(({ clock }) => { if (dish.current) (dish.current.material as THREE.MeshStandardMaterial).emissiveIntensity = linked ? 0.6 + 0.4 * Math.sin(clock.elapsedTime * 3) : 0; });
-  return <group position={[0, 1.6, 0]}>
-    <mesh castShadow><cylinderGeometry args={[1.6, 2, 1.8, 8]} /><meshStandardMaterial color="#cfc8b6" metalness={0.6} roughness={0.35} /></mesh>
-    <mesh position={[0, 1.15, 0]} castShadow><cylinderGeometry args={[1.1, 1.6, 0.5, 8]} /><meshStandardMaterial color="#d9a441" metalness={0.8} roughness={0.25} /></mesh>
-    {[-1, 1].map(x => <mesh key={x} position={[x * 2.6, 2.4, 0]} castShadow><boxGeometry args={[0.12, 3.2, 2]} /><meshStandardMaterial color="#1a3550" emissive="#2a6aa0" emissiveIntensity={charging ? 0.5 : 0.02} metalness={0.4} roughness={0.3} /></mesh>)}
-    {[-1, 1].map(x => <mesh key={'a' + x} position={[x * 1.9, 2.4, 0]}><boxGeometry args={[1.4, 0.08, 0.08]} /><meshStandardMaterial color="#888" /></mesh>)}
-    <mesh position={[0, 3.2, 0]}><cylinderGeometry args={[0.06, 0.06, 2.4]} /><meshStandardMaterial color="#ddd" metalness={0.8} /></mesh>
-    <mesh ref={dish} position={[0, 4.4, 0]} rotation={[0.9, 0, 0]}><sphereGeometry args={[0.55, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2.4]} /><meshStandardMaterial color="#e8eaec" emissive="#5aa9ff" side={THREE.DoubleSide} metalness={0.5} /></mesh>
-    {[[-1.4, -1.4], [-1.4, 1.4], [1.4, -1.4], [1.4, 1.4]].map(([x, z], i) => <group key={i}>
-      <mesh position={[x * 1.1, -0.9, z * 1.1]} rotation={[z * 0.25, 0, -x * 0.25]}><cylinderGeometry args={[0.07, 0.07, 1.6]} /><meshStandardMaterial color="#8e918f" metalness={0.7} /></mesh>
-      <mesh position={[x * 1.3, -1.6, z * 1.3]}><cylinderGeometry args={[0.35, 0.4, 0.08, 12]} /><meshStandardMaterial color="#666" /></mesh></group>)}
-  </group>;
+/** Luz solar con sombra adaptativa: el encuadre de la sombra se ajusta a la distancia de la cámara
+ *  (de cerca: sombra nítida del módulo y las piedras; de lejos: sombras de montañas de km). */
+function SunLight({ dir, intensity }: { dir: THREE.Vector3; intensity: number }) {
+  const light = useRef<THREE.DirectionalLight>(null); const { camera, scene } = useThree(); const last = useRef(0);
+  useEffect(() => { if (light.current) scene.add(light.current.target); }, [scene]);
+  useFrame(() => {
+    const l = light.current; if (!l) return;
+    const d = camera.position.length(); const ext = THREE.MathUtils.clamp(d * 2.2, 40, 12500);
+    if (Math.abs(ext - last.current) / ext > 0.15) {
+      last.current = ext; const c = l.shadow.camera; c.left = -ext; c.right = ext; c.top = ext; c.bottom = -ext;
+      c.near = 1; c.far = ext * 8 + 4000; c.updateProjectionMatrix(); l.shadow.normalBias = ext / 900; l.shadow.bias = -0.0002;
+    }
+    l.position.copy(dir).multiplyScalar(ext * 4 + 1500); l.target.position.set(0, 0, 0); l.target.updateMatrixWorld();
+  });
+  return <directionalLight ref={light} intensity={intensity} color="#fff1dc" castShadow shadow-mapSize-width={4096} shadow-mapSize-height={4096} />;
 }
 
 function CameraRig({ preset, sunAz, earthAz, nonce }: { preset: CameraPreset; sunAz: number; earthAz: number; nonce: number }) {
@@ -108,77 +95,96 @@ function CameraRig({ preset, sunAz, earthAz, nonce }: { preset: CameraPreset; su
   useEffect(() => {
     if (!controls || preset === 'free') return;
     if (preset === 'aerial') { const d = dirFromAzEl(sunAz + 120, 0); camera.position.set(d.x * 11000, 7000, d.z * 11000); controls.target.set(0, -1200, 0); }
-    else { const az = preset === 'sun' ? sunAz : earthAz; const d = dirFromAzEl(az, 0), side = dirFromAzEl(az + 90, 0); camera.position.set(-d.x * 30 + side.x * 14, 7, -d.z * 30 + side.z * 14); controls.target.set(d.x * 40, 9, d.z * 40); }
+    else { const az = preset === 'sun' ? sunAz : earthAz; const d = dirFromAzEl(az, 0), side = dirFromAzEl(az + 90, 0); camera.position.set(-d.x * 22 + side.x * 9, 4.5, -d.z * 22 + side.z * 9); controls.target.set(d.x * 40, 7, d.z * 40); }
     controls.update();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [preset, nonce, controls]);
   return null;
 }
 
-/** Proyecta posiciones 3D a la pantalla en cada cuadro y mueve etiquetas DOM (sin re-render de React). */
-function Projector({ targets }: { targets: { pos: THREE.Vector3; el: React.RefObject<HTMLDivElement | null> }[] }) {
-  const { camera, size } = useThree(); const v = useMemo(() => new THREE.Vector3(), []);
+/* ---------- Capa de marcadores (DOM) ---------- */
+interface Marker { pos: THREE.Vector3; el: React.RefObject<HTMLDivElement | null>; edge: boolean }
+
+/** Proyecta Sol/Tierra/módulo a pantalla en cada cuadro. Fuera de cuadro: flecha en el borde apuntando hacia el cuerpo.
+ *  También mueve la cinta de la brújula según hacia dónde mira la cámara. */
+function Overlay({ markers, tape, sunAz, earthAz }: { markers: Marker[]; tape: React.RefObject<HTMLDivElement | null>; sunAz: number; earthAz: number }) {
+  const { camera, size } = useThree(); const v = useMemo(() => new THREE.Vector3(), []); const f = useMemo(() => new THREE.Vector3(), []);
   useFrame(() => {
-    for (const t of targets) {
-      const el = t.el.current; if (!el) continue;
-      v.copy(t.pos).project(camera);
-      const behind = v.z > 1; el.style.display = behind ? 'none' : '';
-      el.style.transform = `translate(-50%,-50%) translate(${((v.x + 1) / 2) * size.width}px, ${((1 - v.y) / 2) * size.height}px)`;
+    const W = size.width, H = size.height, pad = 46, padTop = 78, padBottom = 70;
+    for (const m of markers) {
+      const el = m.el.current; if (!el) continue;
+      v.copy(m.pos).project(camera); const behind = v.z > 1;
+      let x = ((v.x + 1) / 2) * W, y = ((1 - v.y) / 2) * H; if (behind) { x = W - x; y = H - y; }
+      const out = behind || x < pad || x > W - pad || y < padTop || y > H - padBottom;
+      if (out && m.edge) {
+        const cx = W / 2, cy = H / 2; let dx = x - cx, dy = y - cy; if (behind && Math.hypot(dx, dy) < 1) dy = 1;
+        const k = Math.min((W / 2 - pad) / Math.abs(dx || 1e-6), (dy < 0 ? H / 2 - padTop : H / 2 - padBottom) / Math.abs(dy || 1e-6)); x = cx + dx * k; y = cy + dy * k;
+        el.dataset.edge = '1'; el.style.setProperty('--ang', `${Math.atan2(dy, dx)}rad`);
+      } else { el.dataset.edge = ''; if (!m.edge) el.style.display = behind ? 'none' : ''; }
+      el.dataset.flip = x > W * 0.58 ? '1' : '';
+      el.style.transform = `translate(${x}px, ${y}px)`;
+    }
+    const t = tape.current;
+    if (t) {
+      camera.getWorldDirection(f); const yaw = (THREE.MathUtils.radToDeg(Math.atan2(f.x, -f.z)) + 360) % 360;
+      t.style.setProperty('--yaw', String(yaw)); t.style.setProperty('--sa', String(((sunAz - yaw + 540) % 360) - 180)); t.style.setProperty('--ea', String(((earthAz - yaw + 540) % 360) - 180));
     }
   });
   return null;
 }
 
-function Compass({ mask }: { mask: Int16Array }) {
-  return <>{[['N', 0], ['E', 90], ['S', 180], ['O', 270]].map(([t, az]) => {
-    const d = dirFromAzEl(az as number, 0); const y = RING_R * 0.6 * Math.tan(THREE.MathUtils.degToRad(mask[Math.round((az as number) * 2) % mask.length] / 100)) + 600;
-    return <Html key={t} position={[d.x * RING_R * 0.6, y, d.z * RING_R * 0.6]} center zIndexRange={[5, 0]}><span className="sc-compass">{t}</span></Html>;
-  })}</>;
-}
-
-export function SiteScene({ heights, size, step, mask, sun, earth, labels, preset, presetNonce, onUserMove }: {
+export function SiteScene({ heights, size, step, mask, sun, earth, labels, preset, presetNonce, onUserMove, flat }: {
   heights: Int16Array | null; size: number; step: number; mask: Int16Array; sun: Body; earth: Body; labels: SceneLabels;
-  preset: CameraPreset; presetNonce: number; onUserMove: () => void;
+  preset: CameraPreset; presetNonce: number; onUserMove: () => void; flat: boolean;
 }) {
   const sunDir = useMemo(() => dirFromAzEl(sun.az, sun.el), [sun.az, sun.el]);
   const earthDir = useMemo(() => dirFromAzEl(earth.az, earth.el), [earth.az, earth.el]);
   // Fracción del disco solar sobre el horizonte (diámetro 0.53°): suaviza amanecer y atardecer
   const frac = THREE.MathUtils.clamp((sun.el - sun.horizon) / 0.53 + 0.5, 0, 1);
   const earthUp = earth.el > earth.horizon;
-  const lightPos = useMemo(() => sunDir.clone().multiplyScalar(20000), [sunDir]);
   const sunPos = useMemo(() => sunDir.clone().multiplyScalar(SUN_R), [sunDir]), earthPos = useMemo(() => earthDir.clone().multiplyScalar(EARTH_R), [earthDir]);
-  const fmt = (b: Body) => `${b.el >= 0 ? '+' : ''}${b.el.toFixed(1)}°`;
-  const sunRef = useRef<HTMLDivElement>(null), earthRef = useRef<HTMLDivElement>(null);
-  const pinRef = useRef<HTMLDivElement>(null);
-  const targets = useMemo(() => [{ pos: sunPos, el: sunRef }, { pos: earthPos, el: earthRef }, { pos: new THREE.Vector3(0, 7, 0), el: pinRef }], [sunPos, earthPos]);
+  const sunRef = useRef<HTMLDivElement>(null), earthRef = useRef<HTMLDivElement>(null), pinRef = useRef<HTMLDivElement>(null), tapeRef = useRef<HTMLDivElement>(null);
+  const markers = useMemo<Marker[]>(() => [{ pos: sunPos, el: sunRef, edge: true }, { pos: earthPos, el: earthRef, edge: true }, { pos: new THREE.Vector3(0, LANDER_BASE + 5.2, 0), el: pinRef, edge: false }], [sunPos, earthPos]);
+  const fmt = (b: Body) => `${b.el >= 0 ? '+' : '−'}${Math.abs(b.el).toFixed(1)}°`;
+  const ready = flat || !!heights;
+  const ticks = useMemo(() => Array.from({ length: 72 }, (_, i) => i * 15 - 360), []);
   return (
     <div className="sc-root">
-    <Canvas shadows camera={{ position: [-30, 9, 20], fov: 55, near: 0.5, far: 200000 }} gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping }} dpr={[1, 1.75]}>
-      <color attach="background" args={['#020304']} />
-      <Stars radius={150000} depth={20000} count={2500} factor={2600} saturation={0} fade={false} speed={0} />
-      <ambientLight intensity={0.03} color="#9db4d0" />
-      {/* Luz de Tierra: la Tierra iluminada refleja algo de luz azulada cuando está sobre el horizonte */}
-      <directionalLight position={earthPos} intensity={earthUp ? 0.12 : 0} color="#8fb8ff" />
-      <directionalLight position={lightPos} intensity={2.4 * frac} color="#fff1dc" castShadow
-        shadow-mapSize-width={4096} shadow-mapSize-height={4096} shadow-bias={-0.0004} shadow-normalBias={20}
-        shadow-camera-left={-12500} shadow-camera-right={12500} shadow-camera-top={12500} shadow-camera-bottom={-12500} shadow-camera-near={100} shadow-camera-far={60000} />
-      {heights && <Terrain heights={heights} size={size} step={step} />}
-      <HorizonRing mask={mask} />
-      <Lander charging={frac > 0} linked={earthUp} />
-      <Sun pos={sunPos} frac={frac} />
-      <Earth pos={earthPos} sunDir={sunDir} />
-      <Compass mask={mask} />
-      <OrbitControls makeDefault enableDamping target={[0, 4, 0]} minDistance={8} maxDistance={30000} maxPolarAngle={Math.PI * 0.53} onStart={onUserMove} />
-      <CameraRig preset={preset} sunAz={sun.az} earthAz={earth.az} nonce={presetNonce} />
-      <Projector targets={targets} />
-      <EffectComposer multisampling={0}>
-        <Bloom intensity={1.2} luminanceThreshold={1.2} luminanceSmoothing={0.2} mipmapBlur />
-        <Vignette offset={0.25} darkness={0.7} />
-      </EffectComposer>
-    </Canvas>
-      <div ref={pinRef} className="sc-anchor"><div className="sc-pin">▼ {labels.lander}</div></div>
-      <div ref={sunRef} className="sc-anchor"><div className={`sc-label sun ${frac > 0 ? '' : 'off'}`}><b>☀ {labels.sun}</b><span>{frac > 0 ? labels.above(fmt(sun)) : labels.hidden}</span><em>{frac > 0 ? labels.light : labels.dark}</em></div></div>
-      <div ref={earthRef} className="sc-anchor"><div className={`sc-label earth ${earthUp ? '' : 'off'}`}><b>◉ {labels.earth}</b><span>{earthUp ? labels.above(fmt(earth)) : labels.hidden}</span><em>{earthUp ? labels.link : labels.noLink}</em></div></div>
+      <Canvas shadows camera={{ position: [-20, 5, 14], fov: 55, near: 0.3, far: 200000 }} gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping }} dpr={[1, 1.75]}>
+        <color attach="background" args={['#020304']} />
+        <Stars radius={150000} depth={20000} count={2500} factor={2600} saturation={0} fade={false} speed={0} />
+        <ambientLight intensity={0.035} color="#9db4d0" />
+        {/* luz de Tierra: la Tierra iluminada refleja algo de luz azulada cuando está sobre el horizonte */}
+        <directionalLight position={earthPos} intensity={earthUp ? 0.1 : 0} color="#8fb8ff" />
+        <SunLight dir={sunDir} intensity={2.6 * frac} />
+        {flat ? <FlatGround /> : heights && <Terrain heights={heights} size={size} step={step} />}
+        {ready && <NearField heights={flat ? null : heights} size={size} step={step} flat={flat} />}
+        <HorizonRing mask={mask} />
+        <Lander base={LANDER_BASE} sunDir={sunDir} earthDir={earthDir} charging={frac > 0} linked={earthUp} />
+        <Sun pos={sunPos} frac={frac} />
+        <Earth pos={earthPos} sunDir={sunDir} />
+        <OrbitControls makeDefault enableDamping target={[0, 4, 0]} minDistance={6} maxDistance={30000} maxPolarAngle={Math.PI * 0.52} onStart={onUserMove} />
+        <CameraRig preset={preset} sunAz={sun.az} earthAz={earth.az} nonce={presetNonce} />
+        <Overlay markers={markers} tape={tapeRef} sunAz={sun.az} earthAz={earth.az} />
+        <EffectComposer multisampling={0}>
+          <Bloom intensity={1.1} luminanceThreshold={1.4} luminanceSmoothing={0.15} mipmapBlur />
+          <Vignette offset={0.3} darkness={0.65} />
+        </EffectComposer>
+      </Canvas>
+
+      <div ref={pinRef} className="mk-pin"><span>{labels.lander}</span></div>
+      <div ref={sunRef} className={`mk sun ${frac > 0 ? '' : 'off'}`}>
+        <i className="mk-ring" /><i className="mk-arrow" />
+        <div className="mk-card"><span className="mk-ico">☀</span><b>{labels.sun}</b><strong className="mono">{fmt(sun)}</strong><em>{frac > 0 ? labels.light : labels.hidden}</em></div>
+      </div>
+      <div ref={earthRef} className={`mk earth ${earthUp ? '' : 'off'}`}>
+        <i className="mk-ring" /><i className="mk-arrow" />
+        <div className="mk-card"><span className="mk-ico">◉</span><b>{labels.earth}</b><strong className="mono">{fmt(earth)}</strong><em>{earthUp ? labels.link : labels.hidden}</em></div>
+      </div>
+      <div ref={tapeRef} className="tape" aria-hidden>
+        <div className="tape-strip">{ticks.map(a => { const n = ((a % 360) + 360) % 360; const major = n % 90 === 0; return <span key={a} className={major ? 'maj' : n % 45 === 0 ? 'mid' : ''} style={{ '--a': a } as React.CSSProperties}>{(major || n % 45 === 0) && <em>{major ? labels.compass[n / 90] : n}</em>}</span>; })}</div>
+        <i className={`tape-mk sun ${frac > 0 ? '' : 'off'}`} /><i className={`tape-mk earth ${earthUp ? '' : 'off'}`} /><b className="tape-c" />
+      </div>
     </div>
   );
 }
