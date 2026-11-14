@@ -27,7 +27,7 @@ The Navigator compares landing scenarios at the nine Artemis III candidate regio
 | Terrain | [LRO/LOLA `LDEM_80S_80M`](https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/polar/img/) (PDS, 80 m/px) | Horizon masks, 3D terrain, map hillshade |
 | Candidate regions | USGS, *Down Selected Artemis III Candidate Landing Site Navigational Grids* (McClernan 2024, [doi:10.5066/P1MEQ6UK](https://doi.org/10.5066/P1MEQ6UK)) | Official region polygons |
 
-The method is described in [`docs/metodologia.md`](docs/metodologia.md).
+The method is described in [`docs/metodologia.md`](docs/metodologia.md); the full classified source list is in [`docs/fuentes.md`](docs/fuentes.md).
 
 ## Run locally
 
@@ -56,6 +56,7 @@ The processed data is committed under `public/data/`, so the app runs without do
 
 ## Documentation
 
+- [`docs/fuentes.md`](docs/fuentes.md): every source, classified (NASA data, other agencies, references, software, AI)
 - [`docs/metodologia.md`](docs/metodologia.md): data, algorithms and validation
 - [`docs/arquitectura.md`](docs/arquitectura.md): code structure and data pipeline
 - [`docs/guia-de-uso.md`](docs/guia-de-uso.md): how to use the app, for planners and teachers

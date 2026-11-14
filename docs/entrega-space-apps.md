@@ -24,6 +24,9 @@ At the lunar south pole the Sun never rises more than a few degrees and Earth ha
 
 ## NASA data
 
+Lista completa y clasificada en [`fuentes.md`](fuentes.md).
+
+
 - NASA/JPL Horizons API (DE441 ephemerides): https://ssd.jpl.nasa.gov/api/horizons.api
 - LRO/LOLA polar gridded elevation data, LDEM_80S_80M (NASA PDS Geosciences Node): https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/polar/img/
 - NASA Artemis III candidate landing regions (October 2024 update): https://www.nasa.gov/news-release/nasa-provides-update-on-artemis-iii-moon-landing-regions/
