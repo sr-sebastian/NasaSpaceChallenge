@@ -124,6 +124,8 @@ Iconos, modelo 3D del módulo, texturas de regolito, aislamiento térmico y celd
 
 El equipo revisó y probó el resultado. Ningún dato, imagen, resultado ni conclusión fue generado por IA: todos los números salen de las fuentes de las secciones 1 y 2.
 
+Dónde queda marcado este uso, como piden las reglas de Space Apps: en el pie de la app, en los metadatos `ai-assistance` de `index.html`, en el README, en este documento y en el campo del formulario de entrega.
+
 ## 6. Cómo citar los datos
 
 > Ephemerides: NASA/JPL Horizons System, DE441. Terrain: LRO LOLA LDEM_80S_80M, NASA Planetary Data System. Candidate regions: NASA (2024), polygons from McClernan, M. T. (2024), USGS data release, doi:10.5066/P1MEQ6UK.

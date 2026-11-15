@@ -2,15 +2,32 @@
 
 La entrega se hace desde la página del equipo en spaceappschallenge.org, con la cuenta de quien administra el equipo. Abajo están los pasos y, después, el texto en inglés para pegar en cada campo.
 
+## Plazo
+
+**Cierre: 15 de noviembre de 2026, 23:59 en la hora local del evento de quien es dueño del equipo** (Team Owner). Fuente: [nasa/spaceapps#1916](https://github.com/nasa/spaceapps/discussions/1916).
+
+## Reglas que hay que cumplir
+
+Fuente: discusiones oficiales del repositorio de Space Apps ([#1916](https://github.com/nasa/spaceapps/discussions/1916), [#2123](https://github.com/nasa/spaceapps/discussions/2123)) y la [guía de entrega](https://www.spaceappschallenge.org/resources/project-submission-guide/).
+
+| Regla | Estado |
+|---|---|
+| Usar al menos un recurso de la NASA (requisito para el juzgamiento global) | Cumplido: Horizons, LRO/LOLA y las regiones de Artemis III |
+| Citar todas las fuentes: datos, recursos, herramientas, código, texto e imágenes | Cumplido: `docs/fuentes.md` |
+| Declarar el uso de IA («Super Intelligence», SI) y marcar dónde y cómo se usó, con marca visible o metadatos | Cumplido: campo del formulario, pie de la app, metadatos `ai-assistance` en `index.html`, README y `fuentes.md`. **El video también tiene que llevar una leyenda visible** (ver guion) |
+| El contenido generado no puede usar ni modificar marcas o elementos de diseño de la NASA | Cumplido: la app no usa logos de la NASA; el logo es propio. No pongan el logo de la NASA en el video ni en las diapositivas |
+| El video o las diapositivas no se suben al sitio de Space Apps: va un enlace público | Pendiente: subir el demo |
+| El demo sigue la estructura de la guía, empezando por «Lead us in: What challenge does your project address?» | Pendiente: el guion de abajo ya arranca así |
+
 ## Pasos
 
-1. Entrar a <https://www.spaceappschallenge.org> con la cuenta del equipo, abrir la página del equipo y elegir el desafío **Lunar Landing Site Navigator**.
-2. Verificar que el repositorio sea **público**: <https://github.com/sr-sebastian/NasaSpaceChallenge> (Settings → General → Danger Zone → Change visibility). Los jurados tienen que poder abrirlo sin cuenta.
+1. Entrar a <https://www.spaceappschallenge.org>, ir a la **página del equipo → pestaña Project** y tocar el botón azul **edit**, a la derecha. Si no aparece, usar la flecha amarilla para expandir la página.
+2. Verificar que el repositorio sea **público**: <https://github.com/sr-sebastian/NasaSpaceChallenge>.
 3. Verificar que la app publicada abra: <https://sr-sebastian.github.io/NasaSpaceChallenge/>.
-4. Grabar el **demo** (guion abajo) y subirlo a un enlace público: YouTube como «No listado», Google Drive con acceso «Cualquier persona con el enlace» o similar. En ediciones anteriores el demo era un video de hasta 30 segundos o hasta 7 diapositivas; confirmen el límite en la guía de entrega vigente, porque el formulario puede rechazar enlaces que no cumplan.
+4. Grabar el **demo** con el guion de abajo y subirlo a un enlace público: YouTube como «No listado» o Google Drive con acceso por enlace. Confirmen el largo máximo en la guía de entrega.
 5. Completar los campos con los textos de abajo.
-6. Revisar que todas las personas del equipo estén agregadas en la página del equipo.
-7. Enviar antes del cierre. Después del cierre no se pueden editar los campos.
+6. Revisar que todas las personas del equipo estén agregadas.
+7. Enviar antes del cierre.
 
 ## Campos del formulario
 
@@ -29,11 +46,11 @@ La entrega se hace desde la página del equipo en spaceappschallenge.org, con la
 
 ## Guion del demo (30 segundos)
 
-Grabar la app publicada en pantalla completa, en inglés (botón EN), con el ejemplo que abre por defecto (Malapert contra de Gerlache Rim 2, 7 de octubre de 2028).
+Grabar la app publicada en pantalla completa, en inglés (botón EN), con el ejemplo que abre por defecto (Malapert contra de Gerlache Rim 2, 7 de octubre de 2028). La primera toma responde «What challenge does your project address?», como pide la guía. Durante todo el video, dejar en una esquina la leyenda **«Code written with AI assistance (Claude Code, ChatGPT). All data: NASA/JPL, LRO LOLA, USGS.»** para cumplir la regla de marcar el uso de IA.
 
 | Tiempo | Imagen | Texto en pantalla o narración |
 |---|---|---|
-| 0–4 s | Vista aérea del macizo Malapert | «At the lunar south pole the Sun never climbs more than a few degrees.» |
+| 0–4 s | Vista aérea del macizo Malapert | «Challenge: where and when to land at the lunar south pole, where the Sun never climbs more than a few degrees.» |
 | 4–9 s | «Look at the Sun»: el módulo, el Sol rasante y las sombras largas | «Real LRO/LOLA terrain decides when there is power and when Earth is in view.» |
 | 9–15 s | Barra de respuesta: +43 h de luz, −37 h de comunicación | «Switch site or date and see what you gain or lose, in hours.» |
 | 15–21 s | Play: el tiempo avanza y aparece «Lander: Hibernating» | «A power model shows whether the lander survives the longest night.» |

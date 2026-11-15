@@ -253,7 +253,7 @@ export function Navigator() {
         </>
       )}
 
-      <footer className="foot">{L.footer}</footer>
+      <footer className="foot"><span>{L.footer}</span><span className="foot-ai">{L.aiNote}</span></footer>
 
       {tour !== null && e && (
         <div className="tour" role="dialog" aria-label={L.tour}>
