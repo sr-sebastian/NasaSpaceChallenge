@@ -84,9 +84,9 @@ export function SkyMap({ e, siteId, start, dur, terrain, cursor, L }: { e: Ephem
 }
 
 /** Calendario: filas = sitios, columnas = días de 2028. */
-export function Heatmap({ data, p, onPick, activeSite, activeDay }: { data: { id: string; f: Float32Array }[]; p: Priority; onPick: (id: string, day: number) => void; activeSite: string; activeDay: number }) {
+export function Heatmap({ data, p, onPick, activeSite, activeDay, lang = 'es' }: { data: { id: string; f: Float32Array }[]; p: Priority; onPick: (id: string, day: number) => void; activeSite: string; activeDay: number; lang?: 'es' | 'en' }) {
   const cw = 2.5, ch = 22, Lw = 112, days = data[0]?.f.length ?? 366;
-  const mStart = [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]; const mName = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+  const mStart = [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]; const mName = Array.from({ length: 12 }, (_, m) => new Date(Date.UTC(2028, m, 1)).toLocaleDateString(lang === 'es' ? 'es-UY' : 'en-GB', { month: 'short', timeZone: 'UTC' }).replace('.', ''));
   const cls = p === 'sun' ? 'f-sun' : p === 'earth' ? 'f-earth' : 'f-both';
   const row = data.findIndex(r => r.id === activeSite);
   return (

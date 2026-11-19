@@ -1,109 +1,83 @@
 # Guion de la presentación
 
-Para las 7 diapositivas de *Lunar Landing Site Navigator*. Duración: unos **3 minutos y medio**, o **4 minutos y medio** con la demo en vivo. El reparto entre las cuatro personas del equipo es una sugerencia; cámbienlo si quieren.
+La presentación recorre el **repositorio de GitHub**, sin diapositivas: <https://github.com/sr-sebastian/NasaSpaceChallenge>. Dura unos **4 minutos**, con una demo de la app en el medio. El reparto entre las cuatro personas del equipo es una sugerencia.
 
-Las diapositivas están en inglés y el guion en español. Si presentan en inglés, cada bloque se traduce casi literal.
+El README está en inglés, porque es lo que leen los jurados. El guion está en español; si presentan en inglés, se traduce casi literal.
 
----
+## Preparación (antes de empezar)
 
-## 1 · Portada (15 s) · Bruno
-
-> Hola, somos Prilililis Espaciales: Bruno, Pilar, Rodrigo y Francisco. Trabajamos en el desafío *Lunar Landing Site Navigator*, que pregunta dónde y cuándo conviene aterrizar en el polo sur de la Luna, el lugar al que apunta Artemis III.
-
-**Clave:** presentarse rápido y nombrar el desafío. Nada más.
+- Dos pestañas abiertas: el **repo** y la **app** (<https://sr-sebastian.github.io/NasaSpaceChallenge/>), ya cargada, en inglés, con el ejemplo por defecto.
+- Zoom del navegador al 125 % para que se lea desde lejos.
+- Si se cae la conexión, el README tiene capturas de todo: se puede hacer la presentación entera sin abrir la app.
 
 ---
 
-## 2 · El desafío (35 s) · Bruno
+## 1 · El problema · README, arriba (30 s) · Bruno
 
-> En el polo sur de la Luna el Sol nunca sube más de unos pocos grados. Va dando la vuelta al horizonte, rasante, y cualquier montaña proyecta sombras de kilómetros.
+**En pantalla:** el título, la pregunta en cita y la imagen grande.
+
+> Somos Prilililis Espaciales y trabajamos en el desafío *Lunar Landing Site Navigator*. La pregunta es esta, la que está arriba en el README: si cambio el sitio o la fecha de aterrizaje en el polo sur de la Luna, ¿cuánto tiempo gano o pierdo de luz y de comunicación?
 >
-> Eso genera dos problemas. Izquierda: **energía**. Si una cresta tapa el Sol, los paneles dejan de cargar, y la pregunta no es solo cuántas horas de luz hay, sino cuánto dura la noche más larga y si la batería la aguanta.
+> El polo sur importa porque es adonde apunta Artemis III. Y es difícil porque el Sol nunca sube más de unos pocos grados: cualquier montaña tapa el Sol, que da energía, o la Tierra, con la que hay que hablar.
+
+**Clave:** leer la pregunta en voz alta. Es la consigna literal.
+
+## 2 · La respuesta en una imagen (25 s) · Bruno
+
+**En pantalla:** la captura grande (+43 h / −37 h).
+
+> Esta es nuestra herramienta. Elegís dos escenarios, acá Malapert y de Gerlache Rim 2 el 7 de octubre de 2028, y lo primero que te dice es la respuesta en horas: ganás 43 horas de luz y perdés 37 de comunicación. Y la noche más larga baja de 43 horas a cero.
+
+## 3 · El resultado principal (35 s) · Pilar
+
+**En pantalla:** bajar a **«Key result»** y señalar la tabla.
+
+> Mirando todo 2028, la diferencia es clara. Malapert ve la Tierra el cien por ciento del tiempo, pero tiene Sol solo la mitad. de Gerlache, casi en el polo, tiene mucho más Sol, pero pierde la Tierra cuatro de cada diez horas.
 >
-> Derecha: **comunicación**. La Tierra también está baja, y una montaña cercana puede cortar la línea de vista directa durante días.
+> No hay sitio perfecto: hay un compromiso entre energía y comunicación, y cambia semana a semana. Eso es lo que la herramienta hace visible.
+
+**Clave:** la frase del título, «más luz puede significar menos contacto con la Tierra».
+
+## 4 · Demo de la app (90 s) · Pilar
+
+**En pantalla:** clic en **«▶ Open the live app»** (o pasar a la pestaña ya abierta).
+
+1. **Respuesta arriba (10 s).** «Es lo mismo que vimos, pero en vivo: cambio el sitio o la fecha y los números se actualizan».
+2. **View lander (25 s).** «Este es el terreno real del polo sur, medido por la sonda LRO de la NASA, sin exagerar el relieve. El módulo orienta los paneles al Sol y la antena a la Tierra. Estos carteles dicen si el Sol y la Tierra se ven o están tapados por la montaña».
+3. **Aerial view (10 s).** «Desde arriba se ve el macizo Malapert y sus sombras de kilómetros».
+4. **▶ Play (20 s).** «Avanzo el tiempo: el Sol pasa detrás del relieve, la batería baja y el módulo entra en hibernación. Abajo, la bitácora cuenta qué le pasa hora por hora».
+5. **Calendario (15 s).** Bajar hasta el calendario. «Y acá está todo 2028, día por día, para los nueve sitios: las celdas más brillantes son las mejores ventanas de aterrizaje. Toco una y se carga como escenario».
+6. **Volver a la pestaña del repo.**
+
+**Si no hay conexión:** mostrar las capturas del README (módulo, vista aérea, energía, calendario) y decir lo mismo.
+
+## 5 · Los datos (35 s) · Rodrigo
+
+**En pantalla:** la tabla **«Data»** del README.
+
+> Todo sale de datos públicos de la NASA. Las posiciones del Sol y la Tierra, hora por hora durante 2028, son de JPL Horizons, el sistema de efemérides de la NASA. El terreno es de LOLA, el altímetro láser de la sonda LRO, con píxeles de 80 metros. Y las nueve regiones son las que anunció NASA en 2024, con los polígonos oficiales de USGS.
 >
-> Por eso decimos que elegir un sitio es también elegir un momento: el mismo lugar puede ser excelente una semana y malo la siguiente.
+> Para cada sitio calculamos el horizonte real en 720 direcciones, hasta 250 kilómetros, con la curvatura de la Luna. El Sol o la Tierra están visibles cuando superan ese horizonte.
 
-**Clave:** la frase del título, «un sitio de aterrizaje también es una decisión de tiempo». Es la idea que tiene que quedar.
+**Clave:** decir «NASA» en cada fuente.
 
----
+## 6 · Cómo está hecho (30 s) · Rodrigo
 
-## 3 · Nuestra solución (35 s) · Pilar
+**En pantalla:** volver a la raíz del repo y abrir la carpeta **`scripts/`**; después, **`docs/`**.
 
-> Hicimos una herramienta web que responde la pregunta de la consigna: si cambio el sitio o la fecha, ¿cuánto gano o pierdo de luz y de comunicación?
+> El cálculo es reproducible. En `scripts` están los tres pasos: bajar las efemérides de Horizons, calcular los horizontes con LOLA y generar el terreno 3D. Los datos procesados están en `public/data`, así la app no necesita servidor.
 >
-> Elegís hasta cuatro escenarios entre las nueve regiones candidatas de Artemis III, con fechas de 2028, y la app te dice la diferencia en horas: «ganás 43 horas de luz y perdés 37 de comunicación».
+> En `docs` está todo documentado en español: la metodología con una tabla de validación de los nueve sitios, la arquitectura, una guía de uso para docentes y la lista completa de fuentes, separando cuáles son de la NASA.
+
+**Opcional:** abrir `docs/fuentes.md` unos segundos.
+
+## 7 · Alcance y cierre (25 s) · Francisco
+
+**En pantalla:** la sección **«Limitations»** del README.
+
+> Queremos ser claros con el alcance. Es un prototipo: la visibilidad es geométrica, no resolvemos detalles menores a 80 metros, no modelamos radio, relés ni eclipses, y el modelo de energía es didáctico. Lo siguiente sería sumar eso y validarlo.
 >
-> Para entender el porqué, tiene una vista 3D con el terreno real, un mapa del cielo de 360° y líneas de tiempo hora por hora, que muestran dónde están el Sol y la Tierra respecto del horizonte real.
->
-> En el mapa ven los dos sitios que vamos a comparar: Malapert, más lejos del polo, y de Gerlache Rim 2, casi en el polo.
-
-**Clave:** señalar los dos puntos del mapa, porque reaparecen en la diapositiva 5.
-
-### Demo en vivo (opcional, 60 s) · Pilar
-
-Hacerla solo si hay buena conexión. Abran la app **antes** de empezar, en inglés, con el ejemplo por defecto, y tengan capturas de respaldo.
-
-1. **Respuesta arriba:** «Esto es lo primero que ves: cambiar de Malapert a de Gerlache el 7 de octubre te da 43 horas más de luz pero 37 menos de contacto».
-2. **Ver módulo y ▶:** «Este es el terreno real medido por la sonda LRO. El módulo orienta sus paneles al Sol y su antena a la Tierra. Al avanzar el tiempo, el Sol pasa detrás de la montaña y el módulo entra en hibernación».
-3. **Calendario:** «Y acá está todo 2028, día por día, para los nueve sitios: las celdas más intensas son las mejores ventanas».
-
----
-
-## 4 · Datos y método (35 s) · Rodrigo
-
-> Todo sale de datos públicos y trazables.
->
-> - Las **9 regiones** son las que NASA anunció en 2024, con los polígonos oficiales de USGS. Dentro de cada una elegimos el punto con más horas de Sol y Tierra a la vez.
-> - El **terreno** es de LOLA, el altímetro láser de la sonda LRO de la NASA, con píxeles de 80 metros.
-> - Las **posiciones del Sol y la Tierra** las da JPL Horizons, el sistema de efemérides de la NASA, hora por hora durante todo 2028.
-> - Para cada sitio trazamos el horizonte en **720 direcciones**, hasta 250 km, teniendo en cuenta la curvatura de la Luna.
->
-> La regla es simple: el Sol o la Tierra están visibles cuando su centro supera ese horizonte real.
-
-**Clave:** decir «NASA» en cada fuente. El requisito del concurso es usar datos de la NASA, y acá se ve que todo el cálculo depende de ellos.
-
----
-
-## 5 · Lo que muestra el modelo (35 s) · Rodrigo
-
-> Y esto es lo que encontramos. Comparemos los dos puntos durante todo 2028.
->
-> Malapert ve la Tierra el **100 %** del tiempo: está orientado hacia ella y es alto. Pero tiene Sol solo el 54 %.
->
-> de Gerlache Rim 2, casi en el polo, tiene Sol el **69 %**: quince puntos más. Pero pierde la Tierra cuatro de cada diez horas.
->
-> No existe el sitio perfecto: hay un compromiso entre energía y comunicación. Nuestra herramienta lo hace visible y lo pone en números.
->
-> Una aclaración honesta: son promedios anuales en dos puntos elegidos por nosotros. Cada misión concreta depende de su fecha, y para eso está el calendario.
-
-**Clave:** la frase «más luz puede significar menos contacto con la Tierra». Y la aclaración final suma credibilidad ante el jurado.
-
----
-
-## 6 · Por qué importa (25 s) · Francisco
-
-> ¿Para quién es?
->
-> Para **planificadores**: discuten el compromiso entre energía y comunicación mirando el mismo escenario, con los mismos números.
->
-> Para **docentes**: la app trae un recorrido guiado que explica por qué el Sol no sube en el polo, cómo el relieve cambia las horas de luz y qué le pasa a la batería de noche.
->
-> Y para el **público**: es una forma de explorar la Luna con datos reales de la NASA, sin necesitar saber de órbitas.
->
-> La idea es convertir datos orbitales en una decisión que cualquiera pueda explicar.
-
----
-
-## 7 · Alcance y próximos pasos (30 s) · Francisco
-
-> Queremos ser claros sobre el alcance. **Hoy** la herramienta compara escenarios con datos trazables, con terreno 3D, mapa del cielo, búsqueda de la mejor fecha, exportación a CSV, recorrido guiado y enlaces para compartir. Está publicada y el código es abierto.
->
-> **Lo que sigue**, antes de usarla para decisiones reales: terreno con más detalle que 80 metros, enlaces de radio, satélites relé y eclipses, y validar los modelos de energía y térmico.
->
-> Es un prototipo útil con un límite claro. Gracias. ¿Preguntas?
-
-**Clave:** terminar en «gracias» y mostrar el código QR o el link a la app, si lo tienen.
+> Pero hoy ya sirve para lo que pide el desafío: que un planificador, un docente o cualquier persona vea en segundos cuánto cambia la luz y la comunicación al elegir otro sitio u otra fecha. Gracias. ¿Preguntas?
 
 ---
 
@@ -134,7 +108,6 @@ Rocas y relieve menores a 80 m, eclipses, el presupuesto de radio y los satélit
 
 ## Antes de presentar
 
-- Abrir la app y dejarla cargada en una pestaña, en inglés, con el ejemplo por defecto.
-- Tener capturas de respaldo de la respuesta, la vista 3D y el calendario por si falla la conexión.
-- Ensayar con cronómetro: 3 min 30 s sin demo.
-- Confirmar que el logo de NASA Space Apps de las diapositivas venga de la plantilla oficial del evento. Las reglas no permiten contenido generado que use o modifique marcas de la NASA.
+- Ensayar con cronómetro: unos 4 minutos con la demo.
+- Probar la app en la computadora y la red del evento.
+- Tener el repo en la raíz y el README arriba de todo al empezar.

@@ -245,7 +245,7 @@ export function Navigator() {
             <div className="sec-h"><h2>{L.calendar}</h2>
               <div className="seg small" role="group" aria-label={L.priority}>{(['both', 'sun', 'earth'] as Priority[]).map(p => <button key={p} aria-pressed={prio === p} onClick={() => setPrio(p)}>{p === 'both' ? L.both : p === 'sun' ? L.sun : L.earth}</button>)}</div></div>
             <p className="hint lead">{L.calendarHint}</p>
-            <Heatmap data={heat} p={prio} activeSite={act.site} activeDay={Math.floor(dateToHour(act.date) / 24)} onPick={(id, d) => upd(active, { site: id, date: hourToDate(Math.min(d * 24, HOURS - dur)) })} />
+            <Heatmap lang={lang} data={heat} p={prio} activeSite={act.site} activeDay={Math.floor(dateToHour(act.date) / 24)} onPick={(id, d) => upd(active, { site: id, date: hourToDate(Math.min(d * 24, HOURS - dur)) })} />
             <h3>{L.ranking} · {fmtDate(act.date, lang)}</h3>
             <div className="tbl-wrap"><table className="rank"><thead><tr><th>#</th><th>{L.site}</th><th>{L.sun}</th><th>{L.earth}</th><th>{L.both}</th><th>{L.longestDark}</th></tr></thead>
               <tbody>{ranking.map(({ r, m }, i) => <tr key={r.id} className={r.id === act.site ? 'on' : ''} onClick={() => upd(active, { site: r.id })}><td>{i + 1}</td><td>{r.name}</td><td>{m.sunH}</td><td>{m.earthH}</td><td>{m.bothH}</td><td>{m.longestDark}</td></tr>)}</tbody></table></div>
